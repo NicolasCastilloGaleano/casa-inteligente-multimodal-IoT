@@ -34,9 +34,9 @@ DEFAULT_SENSORS: dict[str, Any] = {
 SENSOR_LIMITS = {"temperature_c": (-10, 60), "setpoint_c": (18, 32), "light_lux": (0, 1000), "gas_pct": (0, 100),
                  "brightness_pct": (0, 100)}
 ACTUATOR_DEFAULTS: dict[str, Any] = {"light": 0, "fan": False, "curtain": "closed", "curtain_pct": 0,
-                                     "window": "closed", "latch": "locked", "siren": False, "bell": False}
+                                     "latch": "locked", "siren": False, "bell": False}
 # Actuadores que se pueden mandar desde la web, con sus valores válidos.
-COMMANDS = {"light": "0-100", "fan": "bool", "curtain": {"open", "closed"}, "window": {"open", "closed"},
+COMMANDS = {"light": "0-100", "fan": "bool", "curtain": {"open", "closed"},
             "latch": {"locked", "unlocked"}, "siren": "bool"}
 # Origen de cada entrada en la maqueta física.
 SENSOR_SOURCES = {"temperature_c": "KY-028 · real", "setpoint_c": "potenciómetro (consigna)",
@@ -46,11 +46,11 @@ SENSOR_SOURCES = {"temperature_c": "KY-028 · real", "setpoint_c": "potenciómet
 UID_RE = re.compile(r"^[0-9A-F]{4,20}$")
 PORT_RE = re.compile(r"^((rfc2217|socket)://[\w.\-]+:\d{1,5}|COM\d{1,3}|/dev/tty[\w.\-]+)$")
 TELEMETRY_FIELDS = ["timestamp", "mode", "temperature_c", "setpoint_c", "light_lux", "gas_pct", "brightness_pct",
-                    "door_open", "contact", "light", "fan", "curtain", "curtain_pct", "window", "latch", "siren",
+                    "door_open", "contact", "light", "fan", "curtain", "curtain_pct", "latch", "siren",
                     "gas_alarm", "access_active", "armed", "intrusion"]
 TELEMETRY_TYPES = {"mode": "TEXT", "temperature_c": "REAL", "setpoint_c": "REAL", "light_lux": "REAL", "gas_pct": "REAL",
                    "brightness_pct": "REAL", "door_open": "INTEGER", "light": "INTEGER", "fan": "INTEGER",
-                   "curtain": "TEXT", "curtain_pct": "INTEGER", "window": "TEXT", "latch": "TEXT", "siren": "INTEGER",
+                   "curtain": "TEXT", "curtain_pct": "INTEGER", "latch": "TEXT", "siren": "INTEGER",
                    "gas_alarm": "INTEGER", "access_active": "INTEGER", "contact": "INTEGER", "armed": "INTEGER",
                    "intrusion": "INTEGER"}
 
@@ -74,8 +74,6 @@ EVENT_TEXT = {
     "siren_silenced": ("alarm", "Sirena silenciada", "ok"),
     "temp_sensor_error": ("device", "Sensor de temperatura sin lectura", "alerta"),
     "temp_sensor_ok": ("device", "Sensor de temperatura en línea", "ok"),
-    "auto_window_open": ("control", "Regla automática: ventana abierta", "auto"),
-    "auto_window_closed": ("control", "Regla automática: ventana cerrada", "auto"),
     "auto_fan_on": ("control", "Regla automática: ventilador encendido", "auto"),
     "auto_fan_off": ("control", "Regla automática: ventilador apagado", "auto"),
     "auto_light_on": ("control", "Regla automática: luz encendida", "auto"),
@@ -411,7 +409,7 @@ class SerialBridge:
         for key in ("fan", "siren", "bell"):
             if isinstance(actuators_in.get(key), bool):
                 actuators[key] = actuators_in[key]
-        for key, valid in (("curtain", {"open", "closed"}), ("window", {"open", "closed"}), ("latch", {"locked", "unlocked"})):
+        for key, valid in (("curtain", {"open", "closed"}), ("latch", {"locked", "unlocked"})):
             if actuators_in.get(key) in valid:
                 actuators[key] = actuators_in[key]
         update_state(sensors=sensors, actuators=actuators)
@@ -426,7 +424,7 @@ class SerialBridge:
         access = payload.get("access") or {}
         row = {"timestamp": now_iso(), "mode": payload.get("mode"), **{k: s.get(k) for k in DEFAULT_SENSORS},
                "light": a["light"], "fan": int(bool(a["fan"])), "curtain": a["curtain"], "curtain_pct": a["curtain_pct"],
-               "window": a["window"], "latch": a["latch"], "siren": int(bool(a["siren"])),
+               "latch": a["latch"], "siren": int(bool(a["siren"])),
                "gas_alarm": int(bool(alarms.get("gas"))), "access_active": int(bool(access.get("active"))),
                "armed": int(bool((payload.get("security") or {}).get("armed"))),
                "intrusion": int(bool((payload.get("security") or {}).get("intrusion")))}

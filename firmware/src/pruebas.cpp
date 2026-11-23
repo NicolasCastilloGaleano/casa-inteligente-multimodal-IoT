@@ -13,8 +13,6 @@
 
 MotorServo servoPestillo(PIN_SERVO_PESTILLO, PESTILLO_CONTINUO, ANGULO_PESTILLO_CERRADO, ANGULO_PESTILLO_ABIERTO,
                          TIEMPO_PESTILLO_MS, PESTILLO_INVERTIR, VELOCIDAD_SERVO_US);
-MotorServo servoVentana(PIN_SERVO_VENTANA, VENTANA_CONTINUO, ANGULO_VENTANA_CERRADA, ANGULO_VENTANA_ABIERTA,
-                        TIEMPO_VENTANA_MS, VENTANA_INVERTIR, VELOCIDAD_SERVO_US);
 MotorPaso cortina(PIN_PASO, PASOS_CORTINA, US_POR_PASO, CORTINA_INVERTIR);
 Zumbador sirena(PIN_BUZZER_ALARMA);
 Zumbador timbre(PIN_BUZZER_TIMBRE);
@@ -26,14 +24,13 @@ void menu() {
   Serial.println(F(" 1  Luz (LED GPIO2, rampa de brillo)"));
   Serial.println(F(" 2  Rele + ventilador (3 ciclos)"));
   Serial.println(F(" 3  Servo del pestillo (GPIO25)"));
-  Serial.println(F(" 4  Servo de la ventana (GPIO26)"));
   Serial.println(F(" 5  Motor paso a paso de la cortina (abre y cierra)"));
   Serial.println(F(" 6  Buzzers: alarma (GPIO16) y timbre (GPIO17)"));
   Serial.println(F(" 7  Analogicos: 4 potenciometros + temperatura KY-028"));
   Serial.println(F(" 8  Digitales: puerta (reed), contacto KY-036, boton timbre, DIP"));
   Serial.println(F(" 9  Lector RFID (muestra el UID de cada tarjeta)"));
   Serial.println(F(" 0  Todas las salidas en secuencia"));
-  Serial.println(F(" p / v / c  Calibrar pestillo / ventana / cortina"));
+  Serial.println(F(" p / c  Calibrar pestillo / cortina"));
   Serial.println(F(" En las pruebas que se repiten escribe 'q' para salir."));
   Serial.println(F("================================================="));
   Serial.print(F("> "));
@@ -50,7 +47,7 @@ bool pidioSalir() {
 void esperar(unsigned long ms) {  // espera atendiendo motores y buzzers
   unsigned long inicio = millis();
   while (millis() - inicio < ms) {
-    cortina.actualizar(); servoPestillo.actualizar(); servoVentana.actualizar();
+    cortina.actualizar(); servoPestillo.actualizar();
     sirena.actualizar(); timbre.actualizar();
   }
 }
@@ -217,7 +214,6 @@ void setup() {
   ESP32PWM::allocateTimer(0);
   ESP32PWM::allocateTimer(1);
   servoPestillo.iniciar();
-  servoVentana.iniciar();
   SPI.begin(PIN_RFID_SCK, PIN_RFID_MISO, PIN_RFID_MOSI, PIN_RFID_SS);
   rfid.PCD_Init();
   delay(500);
@@ -233,7 +229,6 @@ void loop() {
     case '1': probarLuz(); break;
     case '2': probarRele(); break;
     case '3': probarServo(servoPestillo, "PESTILLO", 'p'); break;
-    case '4': probarServo(servoVentana, "VENTANA", 'v'); break;
     case '5': probarCortina(); break;
     case '6': probarBuzzers(); break;
     case '7': probarAnalogicos(); break;
@@ -241,11 +236,10 @@ void loop() {
     case '9': probarRfid(); break;
     case '0':
       probarLuz(); probarRele(); probarBuzzers();
-      probarServo(servoPestillo, "PESTILLO", 'p'); probarServo(servoVentana, "VENTANA", 'v');
+      probarServo(servoPestillo, "PESTILLO", 'p');
       probarCortina();
       break;
     case 'p': calibrarServo(servoPestillo, "PESTILLO", "TIEMPO_PESTILLO_MS"); break;
-    case 'v': calibrarServo(servoVentana, "VENTANA", "TIEMPO_VENTANA_MS"); break;
     case 'c': calibrarCortina(); break;
     default: Serial.println(F("Opcion no valida"));
   }

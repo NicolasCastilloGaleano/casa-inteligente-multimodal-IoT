@@ -3,60 +3,477 @@
   "author": "Proyecto casa multimodal",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-
-    { "type": "wokwi-ntc-temperature-sensor", "id": "ntc", "top": -190, "left": -330, "attrs": { "temperature": "26" } },
-    { "type": "wokwi-potentiometer", "id": "potLuz", "top": -150, "left": -210, "attrs": { "value": "100" } },
-    { "type": "wokwi-potentiometer", "id": "potGas", "top": -150, "left": -120, "attrs": { "value": "50" } },
-    { "type": "wokwi-potentiometer", "id": "potConsigna", "top": -150, "left": -30, "attrs": { "value": "450" } },
-    { "type": "wokwi-potentiometer", "id": "potBrillo", "top": -150, "left": 60, "attrs": { "value": "800" } },
-
-    { "type": "wokwi-pushbutton", "id": "contacto", "top": 140, "left": -300, "attrs": { "label": "Contacto KY-036", "color": "red" } },
-    { "type": "wokwi-resistor", "id": "rTouch", "top": 220, "left": -300, "attrs": { "value": "10000" } },
-    { "type": "wokwi-slide-switch", "id": "reed", "top": 260, "left": -240, "attrs": { "value": "1" } },
-    { "type": "wokwi-pushbutton", "id": "btnTimbre", "top": 320, "left": -300, "attrs": { "label": "Timbre", "color": "green" } },
-    { "type": "wokwi-slide-switch", "id": "dipModo", "top": 400, "left": -240, "attrs": { "value": "1" } },
-
-    { "type": "wokwi-relay-module", "id": "rele", "top": -170, "left": 260, "attrs": {} },
-    { "type": "wokwi-led", "id": "ledVent", "top": -190, "left": 430, "attrs": { "color": "blue", "label": "Ventilador" } },
-    { "type": "wokwi-resistor", "id": "rVent", "top": -120, "left": 400, "rotate": 90, "attrs": { "value": "220" } },
-    { "type": "wokwi-stepper-motor", "id": "cortina", "top": -60, "left": 470, "attrs": { "size": "17", "display": "angle" } },
-    { "type": "wokwi-servo", "id": "pestillo", "top": 150, "left": 360, "attrs": {} },
-    { "type": "wokwi-servo", "id": "ventana", "top": 260, "left": 360, "attrs": {} },
-    { "type": "wokwi-buzzer", "id": "buzAlarma", "top": 360, "left": 300, "attrs": { "volume": "0.1" } },
-    { "type": "wokwi-buzzer", "id": "buzTimbre", "top": 360, "left": 390, "attrs": { "volume": "0.1" } },
-    { "type": "wokwi-led", "id": "ledLuz", "top": 380, "left": 200, "attrs": { "color": "yellow", "label": "Luz" } },
-    { "type": "wokwi-resistor", "id": "rLuz", "top": 450, "left": 180, "rotate": 90, "attrs": { "value": "220" } }
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-ntc-temperature-sensor",
+      "id": "ntc",
+      "top": -190,
+      "left": -330,
+      "attrs": {
+        "temperature": "26"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potLuz",
+      "top": -150,
+      "left": -210,
+      "attrs": {
+        "value": "100"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potGas",
+      "top": -150,
+      "left": -120,
+      "attrs": {
+        "value": "50"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potConsigna",
+      "top": -150,
+      "left": -30,
+      "attrs": {
+        "value": "450"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potBrillo",
+      "top": -150,
+      "left": 60,
+      "attrs": {
+        "value": "800"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "contacto",
+      "top": 140,
+      "left": -300,
+      "attrs": {
+        "label": "Contacto KY-036",
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rTouch",
+      "top": 220,
+      "left": -300,
+      "attrs": {
+        "value": "10000"
+      }
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "reed",
+      "top": 260,
+      "left": -240,
+      "attrs": {
+        "value": "1"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnTimbre",
+      "top": 320,
+      "left": -300,
+      "attrs": {
+        "label": "Timbre",
+        "color": "green"
+      }
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "dipModo",
+      "top": 400,
+      "left": -240,
+      "attrs": {
+        "value": "1"
+      }
+    },
+    {
+      "type": "wokwi-relay-module",
+      "id": "rele",
+      "top": -170,
+      "left": 260,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledVent",
+      "top": -190,
+      "left": 430,
+      "attrs": {
+        "color": "blue",
+        "label": "Ventilador"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rVent",
+      "top": -120,
+      "left": 400,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "cortina",
+      "top": -60,
+      "left": 470,
+      "attrs": {
+        "size": "17",
+        "display": "angle"
+      }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "pestillo",
+      "top": 150,
+      "left": 360,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzAlarma",
+      "top": 360,
+      "left": 300,
+      "attrs": {
+        "volume": "0.1"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzTimbre",
+      "top": 360,
+      "left": 390,
+      "attrs": {
+        "volume": "0.1"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledLuz",
+      "top": 380,
+      "left": 200,
+      "attrs": {
+        "color": "yellow",
+        "label": "Luz"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rLuz",
+      "top": 450,
+      "left": 180,
+      "rotate": 90,
+      "attrs": {
+        "value": "220"
+      }
+    }
   ],
   "connections": [
-    [ "esp:TX", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX", "$serialMonitor:TX", "", [] ],
-
-    [ "ntc:VCC", "esp:3V3", "red", [] ], [ "ntc:GND", "esp:GND.1", "black", [] ], [ "ntc:OUT", "esp:32", "green", [] ],
-    [ "potLuz:VCC", "esp:3V3", "red", [] ], [ "potLuz:GND", "esp:GND.1", "black", [] ], [ "potLuz:SIG", "esp:33", "green", [] ],
-    [ "potGas:VCC", "esp:3V3", "red", [] ], [ "potGas:GND", "esp:GND.1", "black", [] ], [ "potGas:SIG", "esp:34", "green", [] ],
-    [ "potConsigna:VCC", "esp:3V3", "red", [] ], [ "potConsigna:GND", "esp:GND.1", "black", [] ], [ "potConsigna:SIG", "esp:35", "green", [] ],
-    [ "potBrillo:VCC", "esp:3V3", "red", [] ], [ "potBrillo:GND", "esp:GND.1", "black", [] ], [ "potBrillo:SIG", "esp:VP", "green", [] ],
-
-    [ "contacto:1.l", "esp:3V3", "red", [] ], [ "contacto:2.l", "esp:VN", "blue", [] ],
-    [ "rTouch:1", "esp:VN", "blue", [] ], [ "rTouch:2", "esp:GND.1", "black", [] ],
-    [ "reed:2", "esp:15", "orange", [] ], [ "reed:1", "esp:GND.2", "black", [] ],
-    [ "btnTimbre:1.l", "esp:21", "green", [] ], [ "btnTimbre:2.l", "esp:GND.2", "black", [] ],
-    [ "dipModo:2", "esp:22", "purple", [] ], [ "dipModo:1", "esp:GND.2", "black", [] ],
-
-    [ "rele:VCC", "esp:5V", "red", [] ], [ "rele:GND", "esp:GND.1", "black", [] ], [ "rele:IN", "esp:4", "purple", [] ],
-    [ "rele:COM", "esp:3V3", "red", [] ], [ "rele:NO", "rVent:1", "blue", [] ], [ "rVent:2", "ledVent:A", "blue", [] ], [ "ledVent:C", "esp:GND.1", "black", [] ],
-
-    [ "esp:13", "cortina:A+", "orange", [] ], [ "esp:12", "cortina:B+", "yellow", [] ],
-    [ "esp:14", "cortina:A-", "pink", [] ], [ "esp:27", "cortina:B-", "blue", [] ],
-
-    [ "pestillo:PWM", "esp:25", "orange", [] ], [ "pestillo:V+", "esp:5V", "red", [] ], [ "pestillo:GND", "esp:GND.1", "black", [] ],
-    [ "ventana:PWM", "esp:26", "orange", [] ], [ "ventana:V+", "esp:5V", "red", [] ], [ "ventana:GND", "esp:GND.1", "black", [] ],
-
-    [ "buzAlarma:2", "esp:16", "red", [] ], [ "buzAlarma:1", "esp:GND.2", "black", [] ],
-    [ "buzTimbre:2", "esp:17", "red", [] ], [ "buzTimbre:1", "esp:GND.2", "black", [] ],
-
-    [ "esp:2", "rLuz:1", "yellow", [] ], [ "rLuz:2", "ledLuz:A", "yellow", [] ], [ "ledLuz:C", "esp:GND.2", "black", [] ]
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "ntc:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "ntc:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "ntc:OUT",
+      "esp:32",
+      "green",
+      []
+    ],
+    [
+      "potLuz:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "potLuz:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "potLuz:SIG",
+      "esp:33",
+      "green",
+      []
+    ],
+    [
+      "potGas:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "potGas:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "potGas:SIG",
+      "esp:34",
+      "green",
+      []
+    ],
+    [
+      "potConsigna:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "potConsigna:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "potConsigna:SIG",
+      "esp:35",
+      "green",
+      []
+    ],
+    [
+      "potBrillo:VCC",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "potBrillo:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "potBrillo:SIG",
+      "esp:VP",
+      "green",
+      []
+    ],
+    [
+      "contacto:1.l",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "contacto:2.l",
+      "esp:VN",
+      "blue",
+      []
+    ],
+    [
+      "rTouch:1",
+      "esp:VN",
+      "blue",
+      []
+    ],
+    [
+      "rTouch:2",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "reed:2",
+      "esp:15",
+      "orange",
+      []
+    ],
+    [
+      "reed:1",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "btnTimbre:1.l",
+      "esp:21",
+      "green",
+      []
+    ],
+    [
+      "btnTimbre:2.l",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "dipModo:2",
+      "esp:22",
+      "purple",
+      []
+    ],
+    [
+      "dipModo:1",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "rele:VCC",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "rele:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "rele:IN",
+      "esp:4",
+      "purple",
+      []
+    ],
+    [
+      "rele:COM",
+      "esp:3V3",
+      "red",
+      []
+    ],
+    [
+      "rele:NO",
+      "rVent:1",
+      "blue",
+      []
+    ],
+    [
+      "rVent:2",
+      "ledVent:A",
+      "blue",
+      []
+    ],
+    [
+      "ledVent:C",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "esp:13",
+      "cortina:A+",
+      "orange",
+      []
+    ],
+    [
+      "esp:12",
+      "cortina:B+",
+      "yellow",
+      []
+    ],
+    [
+      "esp:14",
+      "cortina:A-",
+      "pink",
+      []
+    ],
+    [
+      "esp:27",
+      "cortina:B-",
+      "blue",
+      []
+    ],
+    [
+      "pestillo:PWM",
+      "esp:25",
+      "orange",
+      []
+    ],
+    [
+      "pestillo:V+",
+      "esp:5V",
+      "red",
+      []
+    ],
+    [
+      "pestillo:GND",
+      "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "buzAlarma:2",
+      "esp:16",
+      "red",
+      []
+    ],
+    [
+      "buzAlarma:1",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "buzTimbre:2",
+      "esp:17",
+      "red",
+      []
+    ],
+    [
+      "buzTimbre:1",
+      "esp:GND.2",
+      "black",
+      []
+    ],
+    [
+      "esp:2",
+      "rLuz:1",
+      "yellow",
+      []
+    ],
+    [
+      "rLuz:2",
+      "ledLuz:A",
+      "yellow",
+      []
+    ],
+    [
+      "ledLuz:C",
+      "esp:GND.2",
+      "black",
+      []
+    ]
   ],
   "dependencies": {}
 }

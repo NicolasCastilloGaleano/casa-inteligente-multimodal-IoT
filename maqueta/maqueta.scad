@@ -198,10 +198,6 @@ module imp_cerradero() {
     translate([-1, 3.7, 2.5]) cube([20, 8.6, 6.6]);
   }
 }
-// Riel en U para la ventana corrediza (lámina de 3 mm). Imprimir 2 (arriba y abajo).
-module imp_riel_ventana(largo = 210) {
-  difference() { cube([largo, 12, 9]); translate([-1, 4, 3]) cube([largo + 2, 3.6, 7]); }
-}
 module imp_soporte_reed() {
   difference() {
     cube([34, 10, 7]);
@@ -228,7 +224,7 @@ module componentes() {
   // --- fachada ---
   comp("SlateGray") translate([PUERTA[0] + 2, T, 1]) cube([PUERTA[2] - 4, 3, PUERTA[3] - 2]);           // hoja de puerta (cerrada)
   comp("Silver") translate([VENTANA[0] - 8, -1.5, VENTANA[1] - 8]) rotate([90, 0, 0]) linear_extrude(2) imp_marco_ventana_frame();
-  comp("LightBlue", 0.6) translate([VENTANA[0] - 5, T + 4, VENTANA[1] - 5]) cube([VENTANA[2] + 10, 3, VENTANA[3] + 10]);  // vidrio corredizo
+  comp("LightBlue", 0.6) translate([VENTANA[0] - 5, T, VENTANA[1] - 5]) cube([VENTANA[2] + 10, 3, VENTANA[3] + 10]);      // vidrio fijo
   comp("Black") translate([TIMBRE[0] - 6, -3, TIMBRE[1] - 6]) cube([12, 6, 12]);                         // botón timbre
   comp("Black") translate([BUZZER_ALARMA[0], 3, BUZZER_ALARMA[1]]) rotate([90, 0, 0]) cylinder(d = BUZZER_D - 0.5, h = 12);
   comp("RoyalBlue") translate([PUERTA[0] + PUERTA[2] + 12, T, 100]) cube([40, 3, 60]);                   // RFID RC522 (detrás del muro, encima del pestillo)
@@ -238,7 +234,6 @@ module componentes() {
   comp("RoyalBlue") translate([PUERTA[0] + PUERTA[2] + 48, T, 62]) cube([23, 15, 25]);                   // servo pestillo
   comp("Red") translate([PUERTA[0] + PUERTA[2] - 34, T, PUERTA[3] + 6]) cube([34, 8, 7]);               // reed
   // --- planta alta: ventana, cortina, KY-036 ---
-  comp("Gold") translate([VENTANA[0] + VENTANA[2] + 50, T + 14, VENTANA[1] + VENTANA[3] + 6]) cube([23, 15, 25]);  // servo ventana (sobre el riel, separado del muro)
   comp("Goldenrod") translate([VENTANA[0] - 5, T + 22, VENTANA[1] + VENTANA[3] + 22]) rotate([0, 90, 0]) cylinder(d = 8, h = 125);  // rodillo
   comp("Beige", 0.8) translate([VENTANA[0] - 5, T + 21, VENTANA[1] + 25]) cube([110, 1, 45]);           // cortina (a medio bajar)
   comp("SteelBlue") translate([VENTANA[0] + 125, T + 22, VENTANA[1] + VENTANA[3] + 22]) rotate([0, 90, 0]) cylinder(d = 28, h = 19);  // 28BYJ-48
@@ -330,6 +325,5 @@ else if (PIEZA == "soporte_servo") imp_soporte_servo();
 else if (PIEZA == "guia_pestillo") imp_guia_pestillo();
 else if (PIEZA == "cerrojo") imp_cerrojo();
 else if (PIEZA == "cerradero") imp_cerradero();
-else if (PIEZA == "riel_ventana") imp_riel_ventana();
 else if (PIEZA == "soporte_reed") imp_soporte_reed();
 else if (PIEZA == "soporte_iman") imp_soporte_iman();

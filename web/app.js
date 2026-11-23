@@ -64,7 +64,6 @@ function renderActuators(actuators, manual = {}) {
     ["Luz (GPIO2)" + tag("light"), `<input type="range" min="0" max="100" value="${actuators.light}" data-device="light" aria-label="Nivel de luz"><output>${actuators.light}%</output>`],
     ["Ventilador (relé)" + tag("fan"), `<label class="switch-control"><input type="checkbox" data-device="fan" ${actuators.fan ? "checked" : ""}>${actuators.fan ? "Encendido" : "Apagado"}</label>`],
     ["Cortina (paso a paso)" + tag("curtain"), `<span class="curtain-meter" title="${actuators.curtain_pct}% abierta${moving}"><span style="width:${actuators.curtain_pct}%"></span></span>${select("curtain", "Cortina", [["closed", "Cerrada"], ["open", "Abierta"]])}`],
-    ["Ventana (servo)" + tag("window"), select("window", "Ventana", [["closed", "Cerrada"], ["open", "Abierta"]])],
     ["Pestillo puerta (servo)", select("latch", "Pestillo", [["locked", "Cerrado"], ["unlocked", "Abierto"]])],
     ["Sirena (buzzer 1)", `<label class="switch-control"><input type="checkbox" data-device="siren" ${actuators.siren ? "checked" : ""}>${actuators.siren ? "Sonando" : "Apagada"}</label>`],
     ["Timbre (buzzer 2)", `<button class="bell-button" id="bell-ring">${actuators.bell ? "Sonando…" : "♪ Tocar"}</button>`]
@@ -106,14 +105,14 @@ function renderMode(state) {
   const mode = state.control?.mode || "auto";
   $$(".segmented [data-mode]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.mode === mode)));
   const dip = state.control?.dip_auto === undefined ? "" : ` DIP 1 de la maqueta: ${state.control.dip_auto ? "ON (auto)" : "OFF (manual)"}.`;
-  $("#mode-help").textContent = (mode === "auto" ? "Automático: las reglas deciden; una orden manual tiene prioridad durante 60 s." : "Manual: solo tus órdenes mueven luz, ventilador, cortina y ventana. La alarma de gas siempre actúa.") + dip;
+  $("#mode-help").textContent = (mode === "auto" ? "Automático: las reglas deciden; una orden manual tiene prioridad durante 60 s." : "Manual: solo tus órdenes mueven luz, ventilador y cortina. La alarma de gas siempre actúa.") + dip;
 }
 function renderAlarms(state) {
   const control = state.control || {};
   const alarms = control.alarms || {};
   const messages = [];
   let danger = false, canSilence = false;
-  if (alarms.gas) { messages.push(`⚠ ALARMA DE GAS (${fmt(state.sensors.gas_pct)} %): ventilador, ventana y puerta abiertos.${alarms.siren_muted ? " Sirena silenciada." : ""}`); danger = true; canSilence = !alarms.siren_muted; }
+  if (alarms.gas) { messages.push(`⚠ ALARMA DE GAS (${fmt(state.sensors.gas_pct)} %): ventilador encendido y puerta abierta.${alarms.siren_muted ? " Sirena silenciada." : ""}`); danger = true; canSilence = !alarms.siren_muted; }
   const security = control.security || {};
   if (security.intrusion) { messages.push(`⚠ INTRUSIÓN: ${security.cause || "zona activada"}. Desactiva la seguridad o pasa una tarjeta autorizada.${security.siren_muted ? " Sirena silenciada." : ""}`); danger = true; canSilence = canSilence || !security.siren_muted; }
   else if (security.arming_s > 0) messages.push(`Activando seguridad: ${security.arming_s} s para salir y cerrar la puerta…`);
@@ -237,7 +236,7 @@ async function runCommand(device, value, modality) {
     currentState = await post("/api/commands", { device, value, modality });
     renderActuators(currentState.actuators, currentState.control?.manual); await refreshHistory();
     toast(device === "bell" ? "Timbre" : currentState.bridge?.connected ? "Orden enviada al ESP32" : "Orden aplicada en la simulación");
-    if (currentState.control?.alarms?.gas && ["fan", "window", "latch"].includes(device)) toast("Alarma de gas activa: la orden se aplicará cuando termine");
+    if (currentState.control?.alarms?.gas && ["fan", "latch"].includes(device)) toast("Alarma de gas activa: la orden se aplicará cuando termine");
   } catch (error) { toast(error.message); await refreshState(); }
 }
 async function setMode(mode) {
@@ -255,8 +254,6 @@ function parseCommand(text) {
   if (/\bcortina\b/.test(value) && /\b(cerrar|cierra|bajar|baja)\b/.test(value)) return ["curtain", "closed", "Cerrar cortina"];
   if (/\b(puerta|pestillo)\b/.test(value) && /\b(abrir|abre|desbloquear)\b/.test(value)) return ["latch", "unlocked", "Abrir el pestillo de la puerta"];
   if (/\b(puerta|pestillo)\b/.test(value) && /\b(cerrar|cierra|bloquear)\b/.test(value)) return ["latch", "locked", "Cerrar el pestillo de la puerta"];
-  if (/\bventana\b/.test(value) && /\b(abrir|abre)\b/.test(value)) return ["window", "open", "Abrir la ventana"];
-  if (/\bventana\b/.test(value) && /\b(cerrar|cierra)\b/.test(value)) return ["window", "closed", "Cerrar la ventana"];
   if (/\btimbre\b/.test(value)) return ["bell", "ring", "Tocar el timbre"];
   if (/\b(desactivar|desactiva|desarmar|desarma)\b/.test(value) && /\b(seguridad|alarma)\b/.test(value)) return ["security", false, "Desactivar el modo seguridad"];
   if (/\b(activar|activa|armar|arma)\b/.test(value) && /\b(seguridad|alarma)\b/.test(value)) return ["security", true, "Activar el modo seguridad"];

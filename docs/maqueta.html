@@ -58,7 +58,7 @@ a{color:var(--accent)}
     <tbody>
       <tr><td>Panel con 4 botones: Inicio, Alarma, Modo, Reset</td><td>Panel con <b>pulsador de MODO</b> (6 pines, con enclavamiento), <b>botón RESET</b> y 4 potenciómetros</td><td>Los 23 pines útiles del ESP32 ya están ocupados. El RESET va al pin <b>EN</b> (no usa GPIO). El modo seguridad y la prueba de alarma se manejan desde la web o por voz.</td></tr>
       <tr><td>Potenciómetros: umbral T°, vel. ventilador, apertura cortina, sensibilidad touch</td><td><b>P1 luz ambiente</b> (simula), <b>P2 gas</b> (simula), <b>P3 consigna °C</b>, <b>P4 brillo</b></td><td>El relé solo enciende o apaga, así que no se puede variar la velocidad. La sensibilidad del KY-036 se ajusta con el potenciómetro azul del propio módulo. La cortina es automática según la luz.</td></tr>
-      <tr><td>Ventana vigilada: touch + reed + servo</td><td>Ventana: <b>KY-036 + servo</b>. El reed va en la <b>puerta</b></td><td>El firmware usa el reed para el acceso RFID, la puerta forzada y la intrusión por puerta.</td></tr>
+      <tr><td>Ventana vigilada: touch + reed + servo</td><td>Ventana <b>fija</b> vigilada por el <b>KY-036</b> (el servo de la ventana se descartó). El reed va en la <b>puerta</b></td><td>El firmware usa el reed para el acceso RFID, la puerta forzada y la intrusión por puerta.</td></tr>
       <tr><td>"Marco metálico" de la ventana</td><td>Marco de madera o impreso <b>forrado con cinta de aluminio</b></td><td>La maqueta es de madera: la cinta es la superficie conductora que conecta con el KY-036.</td></tr>
       <tr><td>Sensor de temperatura "DHT22/DS18B20"</td><td><b>KY-028</b></td><td>Es el que tienen. Va en una pared interior, lejos del ventilador.</td></tr>
       <tr><td>Módulo de distribución "3.3 V"</td><td>Solo <b>fuente de 5 V</b> + riel de 3.3 V que sale del pin 3V3 del ESP32</td><td>No hay ni hace falta una fuente de 3.3 V aparte.</td></tr>
@@ -75,7 +75,7 @@ a{color:var(--accent)}
   <p class="lead">El lado izquierdo de la casa queda <b>abierto</b> para ver el interior y los mecanismos durante la sustentación. El techo y la tapa del compartimento se retiran.</p>
   <div class="gallery">
     <figure><img src="../maqueta/renders/vista_frontal.png" alt="Vista frontal de la maqueta con techo, fachada, compartimento técnico y panel de control"><figcaption>Fachada: puerta con RFID y timbre, ventana con marco de aluminio, sirena, compartimento y panel.</figcaption></figure>
-    <figure><img src="../maqueta/renders/vista_interior.png" alt="Vista interior sin techo mostrando cortina, servo de la ventana, KY-036 y pestillo"><figcaption>Interior sin techo: rodillo y motor de la cortina, servo de la ventana, KY-036, pestillo y ventilador (pared trasera).</figcaption></figure>
+    <figure><img src="../maqueta/renders/vista_interior.png" alt="Vista interior sin techo mostrando cortina, KY-036 y pestillo"><figcaption>Interior sin techo: rodillo y motor de la cortina, ventana fija, KY-036, pestillo y ventilador (pared trasera).</figcaption></figure>
     <figure><img src="../maqueta/renders/vista_compartimento.png" alt="Compartimento técnico abierto con protoboard, relé y ULN2003"><figcaption>Compartimento técnico abierto: protoboard con ESP32, relé, ULN2003 y bornera de 5 V.</figcaption></figure>
   </div>
   <table>
@@ -99,13 +99,13 @@ a{color:var(--accent)}
       <tr><td>MDF o triplex de 9 mm</td><td>560 × 450 mm</td><td>Base</td></tr>
       <tr><td>Listón de 10 × 10 mm</td><td>≈ 2,5 m</td><td>Esquineros y apoyos del entrepiso (pegados por dentro)</td></tr>
       <tr><td>Palo redondo (dowel) de 8 mm</td><td>15 cm</td><td>Rodillo de la cortina</td></tr>
-      <tr><td>Acrílico de 3 mm o acetato grueso</td><td>110 × 90 mm</td><td>Vidrio corredizo de la ventana</td></tr>
+      <tr><td>Acrílico de 3 mm o acetato grueso</td><td>110 × 90 mm</td><td>Vidrio fijo de la ventana (pegado por dentro)</td></tr>
       <tr><td>Tela delgada o cartulina</td><td>110 × 110 mm</td><td>Cortina enrollable (con un palito de peso abajo)</td></tr>
       <tr><td>Cinta de aluminio (la de ductos)</td><td>1 rollo pequeño</td><td>"Marcos metálicos" vigilados por el KY-036</td></tr>
-      <tr><td>Hilo de nylon (pesca) y ligas</td><td>1 m / 4 ligas</td><td>Ventana y pestillo: el servo tira del hilo y la liga regresa</td></tr>
+      <tr><td>Hilo de nylon (pesca) y ligas</td><td>50 cm / 2 ligas</td><td>Pestillo: el servo tira del hilo y la liga lo regresa</td></tr>
       <tr><td>Imanes de neodimio pequeños (≈ 10 × 3 mm)</td><td>3–5</td><td>Imán del reed y cierre de la tapa del compartimento</td></tr>
       <tr><td>Bisagras pequeñas (o cinta de tela)</td><td>2</td><td>Puerta</td></tr>
-      <tr><td>Tornillos M3 × 10 y tornillos de madera de 2,5 mm</td><td>≈ 30</td><td>Soportes, motor, servos y ventilador</td></tr>
+      <tr><td>Tornillos M3 × 10 y tornillos de madera de 2,5 mm</td><td>≈ 30</td><td>Soportes, motor, servo y ventilador</td></tr>
       <tr><td>Cables dupont macho-hembra de 20 y 30 cm, y cable de calibre 22 AWG</td><td>Según recorrido</td><td>De los componentes al compartimento</td></tr>
       <tr><td>Cola blanca, silicona caliente, cinta doble faz, cintillos</td><td>—</td><td>Ensamble y orden de cables</td></tr>
     </tbody>
@@ -146,12 +146,11 @@ a{color:var(--accent)}
     <figure><img src="../maqueta/renders/pieza_acople_28byj.png" alt=""><figcaption><b>acople_28byj</b> ×1: une el eje del motor con el rodillo de 8 mm. <i>Madera:</i> agujero de 5 mm en la punta del palo + silicona caliente.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_soporte_28byj.png" alt=""><figcaption><b>soporte_28byj</b> ×1: sujeta el motor (tornillos M4 a 35 mm). <i>Madera:</i> escuadra de 5 mm con los mismos agujeros.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_soporte_rodillo.png" alt=""><figcaption><b>soporte_rodillo</b> ×1: el otro extremo del rodillo gira en el agujero de 8,8 mm. <i>Madera:</i> escuadra con un agujero de 9 mm.</figcaption></figure>
-    <figure><img src="../maqueta/renders/pieza_carrete_servo.png" alt=""><figcaption><b>carrete_servo</b> ×2: se pega al brazo del servo y enrolla el hilo. <i>Madera:</i> dos discos de Ø30 con un tarugo al medio, pegados al brazo.</figcaption></figure>
-    <figure><img src="../maqueta/renders/pieza_soporte_servo.png" alt=""><figcaption><b>soporte_servo</b> ×2: el servo queda con el eje hacia afuera del muro. <i>Madera:</i> taco de 15 mm con el hueco del servo.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_carrete_servo.png" alt=""><figcaption><b>carrete_servo</b> ×1: se pega al brazo del servo y enrolla el hilo. <i>Madera:</i> dos discos de Ø30 con un tarugo al medio, pegados al brazo.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_soporte_servo.png" alt=""><figcaption><b>soporte_servo</b> ×1: el servo queda con el eje hacia afuera del muro. <i>Madera:</i> taco de 15 mm con el hueco del servo.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_guia_pestillo.png" alt=""><figcaption><b>guia_pestillo</b> ×1: canal del cerrojo, con un pasador para la liga. <i>Madera:</i> 3 listones formando un túnel.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_cerrojo.png" alt=""><figcaption><b>cerrojo</b> ×1: barra que se desliza. El hilo y la liga se amarran al tope. <i>Madera:</i> palito de helado con un clavito.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_cerradero.png" alt=""><figcaption><b>cerradero</b> ×1: se pega en la cara interior de la hoja de la puerta; el cerrojo entra ahí.</figcaption></figure>
-    <figure><img src="../maqueta/renders/pieza_riel_ventana.png" alt=""><figcaption><b>riel_ventana</b> ×2 (arriba y abajo): riel en U para el vidrio de 3 mm. <i>Madera:</i> dos listones con un palito de 3 mm entre ellos.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_soporte_reed.png" alt=""><figcaption><b>soporte_reed</b> ×1: protege el vidrio del reed sobre el marco de la puerta.</figcaption></figure>
     <figure><img src="../maqueta/renders/pieza_soporte_iman.png" alt=""><figcaption><b>soporte_iman</b> ×1: para imán de 10 × 3 mm en el canto de la puerta (<span class="mono">IMAN_D</span>, <span class="mono">IMAN_H</span>).</figcaption></figure>
   </div>
@@ -166,12 +165,10 @@ a{color:var(--accent)}
     <li>Pega la tela al rodillo con cinta doble faz y ponle un palito abajo para que caiga recta.</li>
     <li>Al encender el ESP32, la cortina debe estar <b>cerrada (abajo)</b>. Calibra <span class="mono">PASOS_CORTINA</span> con la opción <b>c</b> del programa de pruebas.</li>
   </ul>
-  <h3>Ventana corrediza (servo continuo + hilo + liga)</h3>
+  <h3>Ventana fija</h3>
   <ul>
-    <li>Dos rieles en la cara interior, arriba y abajo de la abertura, de x = 120 a 340 mm. El vidrio de 110 × 90 se desliza a la derecha para abrir.</li>
-    <li>El servo va <b>sobre el riel superior</b>, separado 15 mm del muro con un taco, para que el vidrio pase por debajo sin chocar.</li>
-    <li>El hilo va del carrete del servo a la esquina superior derecha del vidrio. Una liga, desde la esquina izquierda hasta un clavito a la izquierda de la ventana, lo devuelve a cerrado.</li>
-    <li>Así un servo continuo nunca empuja: al "abrir" enrolla el hilo y al "cerrar" lo suelta y la liga hace el trabajo. Calibra con la opción <b>v</b>.</li>
+    <li>La ventana ya no se mueve (el servo se descartó). Pega el acrílico o acetato de 110 × 90 mm por dentro de la abertura, con silicona en las esquinas.</li>
+    <li>El marco exterior forrado con cinta de aluminio sigue siendo la zona vigilada por el KY-036.</li>
   </ul>
   <h3>Pestillo de la puerta (servo continuo + hilo + liga)</h3>
   <ul>
@@ -179,7 +176,7 @@ a{color:var(--accent)}
     <li>La liga, entre el tope del cerrojo y el pasador de la guía, mantiene el pestillo <b>cerrado</b>. El servo, al lado, enrolla el hilo y tira del cerrojo para <b>abrir</b>.</li>
     <li>Calibra con la opción <b>p</b>. Así, aunque el servo gire un poco de más, solo se tensa la liga.</li>
   </ul>
-  <div class="note warn">Usa ligas <b>suaves</b> en la ventana y en el pestillo. El firmware deja el servo sin señal cuando termina de moverse: si la liga es muy fuerte, puede hacer girar el servo al revés y cerrar antes de tiempo. Si pasa, usa una liga más floja o dos vueltas menos de hilo.</div>
+  <div class="note warn">Usa una liga <b>suave</b> en el pestillo. El firmware deja el servo sin señal cuando termina de moverse: si la liga es muy fuerte, puede hacer girar el servo al revés y cerrar antes de tiempo. Si pasa, usa una liga más floja o dos vueltas menos de hilo.</div>
   <h3>Marcos vigilados (KY-036)</h3>
   <ul>
     <li>Forra el <b>marco de la ventana</b> (y si quieres, el de la puerta) con cinta de aluminio, por la cara de afuera.</li>
@@ -201,7 +198,6 @@ a{color:var(--accent)}
       <tr><td>Buzzer del timbre</td><td>Interior de la planta baja, en la pared compartida</td><td>Silicona</td><td>Pasacables central</td></tr>
       <tr><td>LED de luz</td><td>Agujero central del entrepiso (alumbra la planta baja)</td><td>Silicona desde arriba</td><td>Pasacables trasero superior</td></tr>
       <tr><td>Motor de la cortina</td><td>Planta alta, encima y a la derecha de la ventana</td><td>Soporte con tornillos M4</td><td>Pasacables superior delantero → ULN2003</td></tr>
-      <tr><td>Servo de la ventana (servo 2)</td><td>Sobre el riel superior, separado 15 mm del muro</td><td>Soporte + taco</td><td>Pasacables superior delantero</td></tr>
       <tr><td>KY-036</td><td>Debajo de la ventana, por dentro</td><td>Cinta doble faz</td><td>Pasacables superior delantero</td></tr>
       <tr><td>Sirena (buzzer de alarma)</td><td>Fachada, a la derecha de la ventana (agujero de Ø23,5)</td><td>A presión + silicona</td><td>Pasacables superior delantero</td></tr>
       <tr><td>Ventilador</td><td>Pared trasera, planta alta (sopla hacia afuera)</td><td>4 tornillos</td><td>Pasacables trasero superior → relé</td></tr>
@@ -241,7 +237,7 @@ a{color:var(--accent)}
     <li><b>Panel:</b> arma la caja inclinada y monta el pulsador de MODO, el RESET y los 4 potenciómetros antes de pegarlo a la base.</li>
     <li><b>Instala los mecanismos</b> (sección 6) y prueba cada uno <i>a mano</i> antes de conectarlo.</li>
     <li><b>Cablea por etapas</b> siguiendo <a href="montaje.html">montaje.html</a>, con el programa de pruebas: sensores primero y motores al final.</li>
-    <li><b>Calibra</b> los servos (p, v) y la cortina (c), ajusta el KY-036 y carga el firmware principal.</li>
+    <li><b>Calibra</b> el servo del pestillo (p) y la cortina (c), ajusta el KY-036 y carga el firmware principal.</li>
     <li><b>Techo:</b> las dos aguas se apoyan sobre los muros. Pega dos topes por debajo para que no se deslicen, pero no las pegues: deben poder retirarse.</li>
   </ol>
 </section>

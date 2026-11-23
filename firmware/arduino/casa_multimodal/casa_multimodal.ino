@@ -4,16 +4,15 @@
 // Protocolo (115200 baudios por USB, o el mismo texto por Bluetooth / Wi-Fi), una línea por mensaje:
 //   ESP32 -> PC : JSON con "type": ready | telemetry | event | rfid | ack | auth_list
 //   PC -> ESP32 : texto "dispositivo:valor"
-//       light:0-100  fan:on|off  curtain:open|closed  window:open|closed  latch:locked|unlocked
+//       light:0-100  fan:on|off  curtain:open|closed  latch:locked|unlocked
 //       siren:on|off (prueba)  bell:ring  alarm:silence  mode:auto|manual  security:arm|disarm
 //       rfid:<UID> (simula una lectura)  auth:add:<UID> | auth:del:<UID> | auth:clear | auth:list | auth:learn
 //       status
 //
 // Reglas de control:
-//   - Gas >= 60 %       -> ALARMA: sirena, ventilador, ventana y pestillo abiertos. Se apaga con gas < 45 %.
-//                          Bloquea las órdenes manuales de ventilador, ventana y pestillo.
+//   - Gas >= 60 %       -> ALARMA: sirena, ventilador y pestillo abierto. Se apaga con gas < 45 %.
+//                          Bloquea las órdenes manuales de ventilador y pestillo.
 //   - Termostato        -> ventilador ON con T >= consigna + 1 °C, OFF con T <= consigna - 1 °C.
-//                          Ventana ON con T >= consigna + 3 °C, OFF con T <= consigna + 1 °C (segunda etapa).
 //   - Luz               -> enciende al brillo del potenciómetro con luz ambiente < 200 lux, apaga con > 300 lux.
 //   - Cortina (paso a paso) -> abre con luz ambiente > 600 lux, cierra con < 150 lux.
 //   - RFID              -> tarjeta autorizada: pestillo abierto 5 s y bip-bip. No autorizada: biiip.
@@ -39,7 +38,6 @@
 // ---------- Parámetros de control ----------
 constexpr float GAS_ALARMA_ON = 60.0f, GAS_ALARMA_OFF = 45.0f;
 constexpr float VENT_SOBRE_CONSIGNA = 1.0f, VENT_BAJO_CONSIGNA = 1.0f;
-constexpr float VENTANA_ON = 3.0f, VENTANA_OFF = 1.0f;
 constexpr float LUX_LUZ_ON = 200.0f, LUX_LUZ_OFF = 300.0f;
 constexpr float LUX_CORTINA_ABRIR = 600.0f, LUX_CORTINA_CERRAR = 150.0f;
 constexpr unsigned long ACCESO_MS = 5000;
@@ -50,12 +48,10 @@ constexpr unsigned long TELEMETRIA_MS = 1000;
 constexpr unsigned long RETARDO_ARMADO_MS = 10000;  // tiempo para salir después de activar la seguridad
 constexpr uint8_t MAX_UIDS = 20;
 
-enum Dispositivo { D_LUZ, D_VENT, D_CORTINA, D_VENTANA, D_TOTAL };
+enum Dispositivo { D_LUZ, D_VENT, D_CORTINA, D_TOTAL };
 
 MotorServo servoPestillo(PIN_SERVO_PESTILLO, PESTILLO_CONTINUO, ANGULO_PESTILLO_CERRADO, ANGULO_PESTILLO_ABIERTO,
                          TIEMPO_PESTILLO_MS, PESTILLO_INVERTIR, VELOCIDAD_SERVO_US);
-MotorServo servoVentana(PIN_SERVO_VENTANA, VENTANA_CONTINUO, ANGULO_VENTANA_CERRADA, ANGULO_VENTANA_ABIERTA,
-                        TIEMPO_VENTANA_MS, VENTANA_INVERTIR, VELOCIDAD_SERVO_US);
 MotorPaso cortina(PIN_PASO, PASOS_CORTINA, US_POR_PASO, CORTINA_INVERTIR);
 Zumbador sirena(PIN_BUZZER_ALARMA);
 Zumbador timbre(PIN_BUZZER_TIMBRE);
@@ -85,10 +81,10 @@ float temperatura = NAN, luxAmbiente = 0, gasPct = 0, consigna = 24, brilloPct =
 bool puertaAbierta = false, dipAuto = true;
 
 bool modoAuto = true, alarmaGas = false, sirenaSilenciada = false, sirenaManual = false;
-bool autoVent = false, autoVentana = false, autoLuz = false, autoCortina = false;
+bool autoVent = false, autoLuz = false, autoCortina = false;
 int manualNivelLuz = 0;
-bool manualVent = false, manualCortina = false, manualVentana = false, manualPestillo = false;
-unsigned long prioridadHasta[D_TOTAL] = {0, 0, 0, 0};
+bool manualVent = false, manualCortina = false, manualPestillo = false;
+unsigned long prioridadHasta[D_TOTAL] = {0, 0, 0};
 bool sensorTempOk = true;
 
 bool accesoActivo = false, alertaPuertaAbierta = false, avisoSonando = false;
@@ -98,7 +94,7 @@ unsigned long armadoInicio = 0;
 String causaIntrusion;
 unsigned long accesoInicio = 0, puertaForzadaHasta = 0, ultimoTimbre = 0;
 
-int salidaLuz = -1, salidaVent = -1, salidaCortina = -1, salidaVentana = -1, salidaPestillo = -1;
+int salidaLuz = -1, salidaVent = -1, salidaCortina = -1, salidaPestillo = -1;
 unsigned long ultimaTelemetria = 0, ultimoMuestreo = 0, ultimoRfid = 0, ultimaRevisionRfid = 0;
 String ultimoUid; unsigned long ultimoUidMs = 0;
 
@@ -289,12 +285,10 @@ void evaluarReglas() {
     evento(gas ? "gas_alarm_on" : "gas_alarm_off", String(gasPct, 0) + "%");
   }
 
-  if (isnan(temperatura)) { autoVent = false; autoVentana = false; }
+  if (isnan(temperatura)) autoVent = false;
   else {
     bool vent = autoVent ? temperatura > consigna - VENT_BAJO_CONSIGNA : temperatura >= consigna + VENT_SOBRE_CONSIGNA;
     if (vent != autoVent) { autoVent = vent; if (modoAuto) evento(vent ? "auto_fan_on" : "auto_fan_off", String(temperatura, 1) + "C"); }
-    bool ventana = autoVentana ? temperatura > consigna + VENTANA_OFF : temperatura >= consigna + VENTANA_ON;
-    if (ventana != autoVentana) { autoVentana = ventana; if (modoAuto) evento(ventana ? "auto_window_open" : "auto_window_closed", String(temperatura, 1) + "C"); }
   }
 
   bool luz = autoLuz ? luxAmbiente < LUX_LUZ_OFF : luxAmbiente < LUX_LUZ_ON;
@@ -322,14 +316,12 @@ void aplicarSalidas() {
   int luz = prioridadManual(D_LUZ) ? manualNivelLuz : (autoLuz ? (int)brilloPct : 0);
   if (!prioridadManual(D_LUZ) && autoLuz && salidaLuz > 0 && abs(luz - salidaLuz) < 3) luz = salidaLuz;  // ruido del pot
   int vent = alarmaGas || (prioridadManual(D_VENT) ? manualVent : autoVent);
-  int ventana = alarmaGas || (prioridadManual(D_VENTANA) ? manualVentana : autoVentana);
   int cort = prioridadManual(D_CORTINA) ? manualCortina : autoCortina;
   int pestillo = alarmaGas || accesoActivo || manualPestillo;
 
   if (luz != salidaLuz) { salidaLuz = luz; analogWrite(PIN_LUZ, map(luz, 0, 100, 0, 255)); }
   if (vent != salidaVent) { salidaVent = vent; escribirRele(vent); }
   if (cort != salidaCortina) { salidaCortina = cort; cortina.abrir(cort); }
-  if (ventana != salidaVentana) { salidaVentana = ventana; servoVentana.mover(ventana); }
   if (pestillo != salidaPestillo) { salidaPestillo = pestillo; servoPestillo.mover(pestillo); }
 
   bool quiereSirena = (alarmaGas && !sirenaSilenciada) || millis() < puertaForzadaHasta || sirenaManual ||
@@ -353,22 +345,22 @@ void enviarTelemetria() {
     "\"sensors\":{\"temperature_c\":%s,\"setpoint_c\":%.1f,\"light_lux\":%.0f,\"gas_pct\":%.0f,\"brightness_pct\":%.0f,\"door_open\":%s,\"contact\":%s},"
     "\"raw\":{\"light\":%d,\"gas\":%d,\"setpoint\":%d,\"brightness\":%d},"
     "\"actuators\":{\"light\":%d,\"fan\":%s,\"curtain\":\"%s\",\"curtain_pct\":%d,\"curtain_moving\":%s,"
-    "\"window\":\"%s\",\"latch\":\"%s\",\"siren\":%s,\"bell\":%s},"
+    "\"latch\":\"%s\",\"siren\":%s,\"bell\":%s},"
     "\"alarms\":{\"gas\":%s,\"siren_muted\":%s,\"door_forced\":%s,\"door_left_open\":%s,\"temp_sensor\":%s},"
     "\"access\":{\"active\":%s,\"remaining_s\":%ld},"
     "\"security\":{\"armed\":%s,\"arming_s\":%ld,\"intrusion\":%s,\"cause\":\"%s\",\"siren_muted\":%s},"
-    "\"manual\":{\"light\":%s,\"fan\":%s,\"curtain\":%s,\"window\":%s},"
+    "\"manual\":{\"light\":%s,\"fan\":%s,\"curtain\":%s},"
     "\"rfid_ok\":%s,\"authorized_cards\":%u,\"learning\":%s,\"channels\":\"%s\",\"ip\":\"%s\"}\n",
     modoAuto ? "auto" : "manual", bstr(dipAuto),
     temp, consigna, luxAmbiente, gasPct, brilloPct, bstr(puertaAbierta), bstr(entContacto.estable),
     rawLuz, rawGas, rawConsigna, rawBrillo,
     salidaLuz, bstr(salidaVent), salidaCortina ? "open" : "closed", cortina.porcentaje(), bstr(cortina.enMovimiento()),
-    salidaVentana ? "open" : "closed", salidaPestillo ? "unlocked" : "locked", bstr(sirena.sonando()), bstr(timbre.sonando()),
+    salidaPestillo ? "unlocked" : "locked", bstr(sirena.sonando()), bstr(timbre.sonando()),
     bstr(alarmaGas), bstr(sirenaSilenciada), bstr(millis() < puertaForzadaHasta), bstr(alertaPuertaAbierta), bstr(sensorTempOk),
     bstr(accesoActivo), restante,
     bstr(seguridadArmada), armando ? (long)((RETARDO_ARMADO_MS - (millis() - armadoInicio)) / 1000 + 1) : 0L, bstr(intrusion),
     causaIntrusion.c_str(), bstr(sirenaIntrusionSilenciada),
-    bstr(prioridadManual(D_LUZ)), bstr(prioridadManual(D_VENT)), bstr(prioridadManual(D_CORTINA)), bstr(prioridadManual(D_VENTANA)),
+    bstr(prioridadManual(D_LUZ)), bstr(prioridadManual(D_VENT)), bstr(prioridadManual(D_CORTINA)),
     bstr(rfidOk), totalUids, bstr(modoAprender), com.canales(), com.ip().c_str());
 }
 
@@ -386,7 +378,7 @@ void procesarComando(String linea) {
   String disp = linea.substring(0, sep), valor = linea.substring(sep + 1);
   valor.trim();
   unsigned long hasta = millis() + PRIORIDAD_MANUAL_MS;
-  bool bloqueado = alarmaGas && (disp == "fan" || disp == "window" || disp == "latch");
+  bool bloqueado = alarmaGas && (disp == "fan" || disp == "latch");
   const char *nota = "";
 
   if (disp == "mode") {
@@ -402,9 +394,6 @@ void procesarComando(String linea) {
   } else if (disp == "curtain") {
     if (valor != "open" && valor != "closed") { ack(original, false, "open o closed"); return; }
     manualCortina = valor == "open"; prioridadHasta[D_CORTINA] = hasta;
-  } else if (disp == "window") {
-    if (valor != "open" && valor != "closed") { ack(original, false, "open o closed"); return; }
-    manualVentana = valor == "open"; prioridadHasta[D_VENTANA] = hasta;
   } else if (disp == "latch") {
     if (valor != "locked" && valor != "unlocked") { ack(original, false, "locked o unlocked"); return; }
     manualPestillo = valor == "unlocked";
@@ -451,7 +440,7 @@ void procesarComando(String linea) {
     return;
   }
   if (bloqueado) nota = "alarma de gas activa: se aplicara al terminar";
-  else if (modoAuto && (disp == "light" || disp == "fan" || disp == "curtain" || disp == "window")) nota = "prioridad manual 60 s";
+  else if (modoAuto && (disp == "light" || disp == "fan" || disp == "curtain")) nota = "prioridad manual 60 s";
   ack(original, true, nota);
 }
 
@@ -471,7 +460,6 @@ void setup() {
   ESP32PWM::allocateTimer(0);
   ESP32PWM::allocateTimer(1);
   servoPestillo.iniciar();  // los servos continuos asumen que arrancan CERRADOS
-  servoVentana.iniciar();
 
   preferencias.begin("casa", false);
   cargarUids();
@@ -513,7 +501,6 @@ void loop() {
   aplicarSalidas();
   cortina.actualizar();
   servoPestillo.actualizar();
-  servoVentana.actualizar();
   sirena.actualizar();
   timbre.actualizar();
   if (millis() - ultimaTelemetria >= TELEMETRIA_MS) {

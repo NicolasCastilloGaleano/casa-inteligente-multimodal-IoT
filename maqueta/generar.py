@@ -24,8 +24,8 @@ MADERA = {
     "panel_lado": 2, "panel_frente": 1, "panel_trasera": 1, "panel_tapa": 1, "puerta": 1, "marco_ventana": 1,
 }
 IMPRESAS = {
-    "acople_28byj": 1, "soporte_28byj": 1, "soporte_rodillo": 1, "carrete_servo": 2, "soporte_servo": 2,
-    "guia_pestillo": 1, "cerrojo": 1, "cerradero": 1, "riel_ventana": 2, "soporte_reed": 1, "soporte_iman": 1,
+    "acople_28byj": 1, "soporte_28byj": 1, "soporte_rodillo": 1, "carrete_servo": 1, "soporte_servo": 1,
+    "guia_pestillo": 1, "cerrojo": 1, "cerradero": 1, "soporte_reed": 1, "soporte_iman": 1,
 }
 RENDERS = {
     "vista_frontal": ("-700,-1050,820,240,60,150", {}),

@@ -54,7 +54,7 @@ const RAIL = { "3V3": { name: "Riel 3.3 V", color: C.v33 }, "5V": { name: "Riel 
 
 // Placa de 30 pines: lado izquierdo y derecho, de arriba (antena) a abajo (USB).
 const BOARD = {
-  left: [["EN", "", "Botón RESET del panel (opcional, a GND)", "#9aa5a0"], ["VP", 36, "Potenciómetro BRILLO (centro)", C.s4], ["VN", 39, "KY-036 contacto (D0) · seguridad", C.s2], ["D34", 34, "Potenciómetro GAS (centro)", C.s1], ["D35", 35, "Potenciómetro CONSIGNA (centro)", C.s3], ["D32", 32, "KY-028 temperatura (A0)", C.s7], ["D33", 33, "Potenciómetro LUZ (centro)", C.s5], ["D25", 25, "Servo PESTILLO (naranja)", C.s1], ["D26", 26, "Servo VENTANA (naranja)", C.s2], ["D27", 27, "ULN2003 IN4", C.s4], ["D14", 14, "ULN2003 IN3", C.s3], ["D12", 12, "ULN2003 IN2", C.s2], ["D13", 13, "ULN2003 IN1", C.s1], ["GND", "", "Riel GND", C.gnd], ["VIN", "", "No conectar (se usa el USB)"]],
+  left: [["EN", "", "Botón RESET del panel (opcional, a GND)", "#9aa5a0"], ["VP", 36, "Potenciómetro BRILLO (centro)", C.s4], ["VN", 39, "KY-036 contacto (D0) · seguridad", C.s2], ["D34", 34, "Potenciómetro GAS (centro)", C.s1], ["D35", 35, "Potenciómetro CONSIGNA (centro)", C.s3], ["D32", 32, "KY-028 temperatura (A0)", C.s7], ["D33", 33, "Potenciómetro LUZ (centro)", C.s5], ["D25", 25, "Servo PESTILLO (naranja)", C.s1], ["D26", 26, "Libre (antes servo de la ventana)"], ["D27", 27, "ULN2003 IN4", C.s4], ["D14", 14, "ULN2003 IN3", C.s3], ["D12", 12, "ULN2003 IN2", C.s2], ["D13", 13, "ULN2003 IN1", C.s1], ["GND", "", "Riel GND", C.gnd], ["VIN", "", "No conectar (se usa el USB)"]],
   right: [["D23", 23, "RFID MOSI", C.s2], ["D22", 22, "Pulsador MODO (6 pines, enclavamiento)", C.s4], ["TX0", 1, "No usar (USB)"], ["RX0", 3, "No usar (USB)"], ["D21", 21, "Botón TIMBRE", C.s1], ["D19", 19, "RFID MISO", C.s3], ["D18", 18, "RFID SCK", C.s5], ["D5", 5, "RFID SDA", C.s6], ["TX2", 17, "Buzzer TIMBRE (+)", C.s4], ["RX2", 16, "Buzzer ALARMA (+)", C.s6], ["D4", 4, "Relé IN", C.s4], ["D2", 2, "Control de luz (PWM)", C.s3], ["D15", 15, "Reed switch (puerta)", C.s7], ["GND", "", "Riel GND", C.gnd], ["3V3", "", "Riel 3.3 V", C.v33]]
 };
 
@@ -73,7 +73,7 @@ const DIAGRAMS = [
     ],
     extra: `<table><thead><tr><th>Riel</th><th>Qué se conecta</th><th>Consumo aproximado</th></tr></thead><tbody>
       <tr><td><span class="chip" style="background:${C.v33}"></span>3.3 V (pin 3V3 del ESP32)</td><td>4 potenciómetros, KY-028, KY-036, RFID (3.3V y RST)</td><td>&lt; 40 mA</td></tr>
-      <tr><td><span class="chip" style="background:${C.v5}"></span>5 V (fuente)</td><td>Relé (DC+), ventilador (por el relé), tarjeta ULN2003 (+), 2 servos (rojo)</td><td>Hasta ~1.5 A con todo moviéndose → usa una fuente de <b>2 A</b> o más</td></tr>
+      <tr><td><span class="chip" style="background:${C.v5}"></span>5 V (fuente)</td><td>Relé (DC+), ventilador (por el relé), tarjeta ULN2003 (+), servo del pestillo (rojo)</td><td>Hasta ~1 A con todo moviéndose → usa una fuente de <b>2 A</b> o más</td></tr>
       <tr><td><span class="chip" style="background:${C.gnd}"></span>GND común</td><td>Todo: ESP32, fuente, sensores, motores, relé, buzzers</td><td>—</td></tr></tbody></table>`
   },
   {
@@ -192,15 +192,14 @@ const DIAGRAMS = [
     ], test: "Prueba 5 · calibrar con c"
   },
   {
-    id: "servos", title: "Servos: pestillo de la puerta y ventana", lead: "Son de rotación continua (360°): se mueven por tiempo y luego se detienen.",
-    esp: ["D25", "D26"], rails: ["5V", "GND"],
-    parts: [{ id: "sp", name: "Servo PESTILLO", pins: ["Marrón (GND)", "Rojo (+5V)", "Naranja (señal)"] }, { id: "sv", name: "Servo VENTANA", pins: ["Marrón (GND)", "Rojo (+5V)", "Naranja (señal)"] }],
-    wires: [["sp:Marrón (GND)", "rail:GND", C.gnd], ["sp:Rojo (+5V)", "rail:5V", C.v5], ["sp:Naranja (señal)", "esp:D25", C.s1],
-            ["sv:Marrón (GND)", "rail:GND", C.gnd], ["sv:Rojo (+5V)", "rail:5V", C.v5], ["sv:Naranja (señal)", "esp:D26", C.s2]],
+    id: "servos", title: "Servo del pestillo de la puerta", lead: "Es de rotación continua (360°): se mueve por tiempo y luego se detiene. (El servo de la ventana se descartó: la ventana es fija.)",
+    esp: ["D25"], rails: ["5V", "GND"],
+    parts: [{ id: "sp", name: "Servo PESTILLO", pins: ["Marrón (GND)", "Rojo (+5V)", "Naranja (señal)"] }],
+    wires: [["sp:Marrón (GND)", "rail:GND", C.gnd], ["sp:Rojo (+5V)", "rail:5V", C.v5], ["sp:Naranja (señal)", "esp:D25", C.s1]],
     notes: [
       ["danger", "El rojo va a la <b>fuente de 5 V</b>, no al ESP32: el pico de corriente al arrancar reinicia la placa o desconecta el USB."],
-      ["tip", "Si tienes un capacitor de 470-1000 µF, ponlo entre 5 V y GND cerca de los servos (pata − a GND). Al encender, pestillo y ventana deben estar <b>cerrados</b>."]
-    ], test: "Pruebas 3 y 4 · calibrar con p y v"
+      ["tip", "Si tienes un capacitor de 470-1000 µF, ponlo entre 5 V y GND cerca del servo (pata − a GND). Al encender, el pestillo debe estar <b>cerrado</b>."]
+    ], test: "Prueba 3 · calibrar con p"
   },
   {
     id: "buzzers", title: "Dos buzzers de 12 V (sirena y timbre)", lead: "Buzzer 1 = sirena (gas, puerta forzada). Buzzer 2 = timbre y confirmaciones del RFID.",
@@ -362,13 +361,13 @@ html += `<section id="orden"><h2><span class="num">✓</span>Orden de montaje re
     <li><b>LED individual con resistencia de 220 Ω</b> (13) → prueba <b>1</b>.</li>
     <li><b>Buzzers</b> (11) → prueba <b>6</b>.</li>
     <li><b>Relé y ventilador</b> (8) → prueba <b>2</b>.</li>
-    <li><b>Servos</b> (10) → pruebas <b>3</b> y <b>4</b>; calibra con <b>p</b> y <b>v</b>.</li>
+    <li><b>Servo del pestillo</b> (10) → prueba <b>3</b>; calibra con <b>p</b>.</li>
     <li><b>Motor de la cortina</b> (9) → prueba <b>5</b>; calibra con <b>c</b>.</li>
     <li>Pon los valores calibrados en <span class="mono">firmware/src/pines.h</span>, ejecuta <span class="mono">python firmware/sincronizar_arduino.py</span> y carga <span class="mono">casa_multimodal.ino</span>.</li>
   </ol></section>
   <section id="problemas"><h2><span class="num">?</span>Problemas frecuentes</h2>
   <table><thead><tr><th>Síntoma</th><th>Causa probable</th></tr></thead><tbody>
-    <tr><td>"No se reconoce el dispositivo USB"</td><td>Cortocircuito o mucho consumo: un positivo tocando GND, el centro de un potenciómetro en 3.3 V o GND, o servos alimentados desde el ESP32. Desconecta todo y ve agregando por partes.</td></tr>
+    <tr><td>"No se reconoce el dispositivo USB"</td><td>Cortocircuito o mucho consumo: un positivo tocando GND, el centro de un potenciómetro en 3.3 V o GND, o el servo alimentado desde el ESP32. Desconecta todo y ve agregando por partes.</td></tr>
     <tr><td>El ESP32 se reinicia al mover un servo o el motor</td><td>Los motores están tomando corriente del ESP32, o falta el GND común con la fuente.</td></tr>
     <tr><td>El relé no se apaga</td><td>VCC del relé sin conectar a 5 V, o un firmware viejo. El firmware actual apaga el relé dejando el pin suelto.</td></tr>
     <tr><td>El motor paso a paso vibra pero no gira</td><td>IN1-IN4 en desorden, falta el jumper de la tarjeta o falta la alimentación de 5 V de la tarjeta.</td></tr>

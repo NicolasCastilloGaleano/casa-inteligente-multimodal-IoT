@@ -40,7 +40,7 @@ constexpr uint8_t PIN_TIMBRE = 21;        // Botón del timbre entre el pin y GN
 constexpr uint8_t PIN_DIP_MODO = 22;      // Interruptor 1 del DIP entre el pin y GND. ON = modo automático
 
 // Si alguna lectura sale al revés, cambia el valor correspondiente.
-constexpr bool PUERTA_ABIERTA_EN_ALTO = false;  // reed abierto -> pull-up -> ALTO = puerta abierta
+constexpr bool PUERTA_ABIERTA_EN_ALTO = true;  // reed abierto -> pull-up -> ALTO = puerta abierta
 constexpr bool CONTACTO_ACTIVO_EN_ALTO = true; // KY-036: D0 en ALTO al tocar el metal (LED2 del módulo encendido)
 
 // =====================================================================
@@ -57,7 +57,7 @@ constexpr uint8_t PIN_RFID_SS = 5;        // Pin "SDA" del módulo
 constexpr uint8_t PIN_LUZ = 2;            // LED azul integrado de la placa (+ LED externo opcional con 220 Ω)
 constexpr uint8_t PIN_RELE_VENTILADOR = 4;
 constexpr uint8_t PIN_SERVO_PESTILLO = 25;
-constexpr uint8_t PIN_SERVO_VENTANA = 26;
+// GPIO26 queda libre (antes: servo de la ventana, descartado).
 constexpr uint8_t PIN_BUZZER_ALARMA = 16; // "RX2" en la placa. Sirena (gas, puerta forzada)
 constexpr uint8_t PIN_BUZZER_TIMBRE = 17; // "TX2" en la placa. Timbre y confirmaciones de acceso
 // Motor paso a paso 28BYJ-48 con tarjeta ULN2003: IN1, IN2, IN3, IN4 (cortina)
@@ -82,34 +82,28 @@ constexpr float TEMPERATURA_AJUSTE_C = 0.0f; // corrección tras comparar con un
 #endif
 
 // =====================================================================
-//  SERVOS (pestillo de la puerta y ventana)
+//  SERVO del pestillo de la puerta
 // =====================================================================
 // true = rotación continua (360°): se mueve por TIEMPO. false = 180°: se mueve por ÁNGULO.
 #ifdef SIMULACION_WOKWI
 constexpr bool PESTILLO_CONTINUO = false;  // los servos de Wokwi son de 180°
-constexpr bool VENTANA_CONTINUO = false;
 #else
 constexpr bool PESTILLO_CONTINUO = true;
-constexpr bool VENTANA_CONTINUO = true;
 #endif
-// Servos continuos: tiempo de giro de cerrado a abierto (calibrar con las opciones 9 y 0 de pruebas).
+// Servo continuo: tiempo de giro de cerrado a abierto (calibrar con la opción p del programa de pruebas).
 constexpr unsigned long TIEMPO_PESTILLO_MS = 400;
-constexpr unsigned long TIEMPO_VENTANA_MS = 800;
 constexpr bool PESTILLO_INVERTIR = false;
-constexpr bool VENTANA_INVERTIR = false;
 constexpr int VELOCIDAD_SERVO_US = 250;      // 0-1000: más alto = gira más rápido
-// Servos de 180°: ángulos.
+// Servo de 180°: ángulos.
 constexpr int ANGULO_PESTILLO_CERRADO = 0;
 constexpr int ANGULO_PESTILLO_ABIERTO = 90;
-constexpr int ANGULO_VENTANA_CERRADA = 0;
-constexpr int ANGULO_VENTANA_ABIERTA = 90;
 
 // =====================================================================
 //  MOTOR PASO A PASO (cortina)
 // =====================================================================
-constexpr long PASOS_CORTINA = 3*4096;            // 4096 medios pasos = 1 vuelta del eje (calibrar con la opción C)
-constexpr unsigned int US_POR_PASO = 800;      // menos = más rápido (mínimo recomendado ~1000 µs)
-constexpr bool CORTINA_INVERTIR = true;
+constexpr long PASOS_CORTINA = 4096;            // 4096 medios pasos = 1 vuelta del eje (calibrar con la opción C)
+constexpr unsigned int US_POR_PASO = 1200;      // menos = más rápido (mínimo recomendado ~1000 µs)
+constexpr bool CORTINA_INVERTIR = false;
 
 // =====================================================================
 //  Utilidades

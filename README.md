@@ -13,8 +13,8 @@ Prototipo de maqueta domótica con interfaz multimodal (texto, voz, braille simu
 | Requisito | Implementación |
 |---|---|
 | ≥ 4 entradas | **Reales:** temperatura (KY-028), puerta (reed switch), contacto en marcos metálicos (KY-036), RFID, botón de timbre y DIP switch. **Simuladas con potenciómetro:** luz ambiente y gas. **Ajustes:** consigna del termostato y brillo |
-| Procesamiento | Reglas en el ESP32 con histéresis: alarma de gas, termostato de dos etapas (ventilador y ventana), luz automática, cortina por luz, control de acceso, detección de puerta forzada y **modo seguridad** (alarma de intrusión). Modo automático o manual, con prioridad manual temporal |
-| ≥ 4 salidas | Ventilador (relé), cortina (motor paso a paso), pestillo y ventana (servos), sirena y timbre (buzzers), luz (LED) |
+| Procesamiento | Reglas en el ESP32 con histéresis: alarma de gas, termostato con histéresis (ventilador), luz automática, cortina por luz, control de acceso, detección de puerta forzada y **modo seguridad** (alarma de intrusión). Modo automático o manual, con prioridad manual temporal |
+| ≥ 4 salidas | Ventilador (relé), cortina (motor paso a paso), pestillo (servo), sirena y timbre (buzzers), luz (LED) |
 | Frontend | Aplicación web/PWA con vista celular |
 | Base de datos | SQLite: `events`, `telemetry` (una fila por segundo), `rfid_users`, `state` |
 
@@ -32,7 +32,7 @@ Sigue **`docs/montaje.html`**. Tiene un diagrama y una tabla de conexiones por c
 | RFID RC522: SDA, SCK, MOSI, MISO | D5, D18, D23, D19 | **3.3 V**; RST a 3.3 V |
 | Relé CW-020 (IN) | D4 | 5 V de la fuente |
 | ULN2003: IN1, IN2, IN3, IN4 | D13, D12, D14, D27 | 5 V de la fuente |
-| Servo pestillo / ventana (naranja) | D25 / D26 | 5 V de la fuente |
+| Servo pestillo (naranja) | D25 | 5 V de la fuente |
 | Buzzer alarma / timbre (+) | RX2 (16) / TX2 (17) | − a GND |
 | Luz (LED de la placa + LED externo opcional) | D2 | — |
 
@@ -49,18 +49,18 @@ En el monitor serie (115200 baudios):
 |---|---|
 | 1 | Luz (rampa de brillo en GPIO2) |
 | 2 | Relé + ventilador |
-| 3 / 4 | Servo del pestillo / de la ventana |
+| 3 | Servo del pestillo |
 | 5 | Motor paso a paso (cortina) |
 | 6 | Buzzers (sirena y ding-dong) |
 | 7 | Potenciómetros + temperatura KY-028 |
 | 8 | Puerta (reed), contacto KY-036, botón y DIP |
 | 9 | RFID (muestra los UID) |
 | 0 | Todas las salidas en secuencia |
-| p / v / c | Calibrar pestillo / ventana / cortina |
+| p / c | Calibrar pestillo / cortina |
 
-Los valores calibrados se ponen en `firmware/src/pines.h`: `TIEMPO_PESTILLO_MS`, `TIEMPO_VENTANA_MS`, `PASOS_CORTINA` y las opciones `*_INVERTIR`. Luego ejecuta `python firmware/sincronizar_arduino.py` para actualizar las carpetas de Arduino IDE. **Edita siempre `src/`**, porque las copias de `arduino/` se sobrescriben.
+Los valores calibrados se ponen en `firmware/src/pines.h`: `TIEMPO_PESTILLO_MS`, `PASOS_CORTINA` y las opciones `*_INVERTIR`. Luego ejecuta `python firmware/sincronizar_arduino.py` para actualizar las carpetas de Arduino IDE. **Edita siempre `src/`**, porque las copias de `arduino/` se sobrescriben.
 
-**Al encender**, el pestillo, la ventana y la cortina deben estar **cerrados**: los servos continuos y el motor paso a paso cuentan su posición desde ahí.
+**Al encender**, el pestillo y la cortina deben estar **cerrados**: el servo continuo y el motor paso a paso cuentan su posición desde ahí.
 
 ## 3. Firmware principal y comunicación
 
@@ -96,9 +96,8 @@ Las tarjetas autorizadas quedan en la base de datos y en la memoria del ESP32, a
 
 | Regla | Activa | Desactiva |
 |---|---|---|
-| Alarma de gas: sirena, ventilador, ventana y pestillo abiertos, aviso por voz | gas ≥ 60 % | gas < 45 % |
-| Termostato, etapa 1: ventilador | T ≥ consigna + 1 °C | T ≤ consigna − 1 °C |
-| Termostato, etapa 2: ventana | T ≥ consigna + 3 °C | T ≤ consigna + 1 °C |
+| Alarma de gas: sirena, ventilador y pestillo abierto, aviso por voz | gas ≥ 60 % | gas < 45 % |
+| Termostato: ventilador | T ≥ consigna + 1 °C | T ≤ consigna − 1 °C |
 | Luz al brillo del potenciómetro | luz ambiente < 200 lux | > 300 lux |
 | Cortina | luz ambiente > 600 lux → abre | < 150 lux → cierra |
 | Acceso RFID | tarjeta autorizada → pestillo 5 s + bip-bip (y desactiva la seguridad) | al cerrar la puerta |
@@ -108,7 +107,7 @@ Las tarjetas autorizadas quedan en la base de datos y en la memoria del ESP32, a
 | Timbre | botón → ding-dong y aviso por voz en la web | — |
 | Modo | DIP 1 ON = automático, OFF = manual (la web también lo cambia) | — |
 
-En modo manual solo actúan las órdenes de la persona. La alarma de gas **siempre** actúa y bloquea los comandos de ventilador, ventana y pestillo. La sirena se puede silenciar desde la web. Los umbrales están al inicio de `firmware/src/main.cpp`.
+En modo manual solo actúan las órdenes de la persona. La alarma de gas **siempre** actúa y bloquea los comandos de ventilador y pestillo. La sirena se puede silenciar desde la web. Los umbrales están al inicio de `firmware/src/main.cpp`.
 
 ## 5. Datos para el artículo
 
@@ -122,7 +121,7 @@ En modo manual solo actúan las órdenes de la persona. La alarma de gas **siemp
 ## Protocolo (USB, Bluetooth y Wi-Fi usan el mismo)
 
 - **ESP32 → PC:** una línea JSON por mensaje con `type`: `ready`, `telemetry` (cada 1 s), `event`, `rfid`, `ack` o `auth_list`.
-- **PC → ESP32:** `light:0-100`, `fan:on|off`, `curtain:open|closed`, `window:open|closed`, `latch:locked|unlocked`, `siren:on|off`, `bell:ring`, `alarm:silence`, `mode:auto|manual`, `security:arm|disarm`, `rfid:<UID>`, `auth:add|del:<UID>`, `auth:clear`, `auth:list`, `auth:learn` y `status`.
+- **PC → ESP32:** `light:0-100`, `fan:on|off`, `curtain:open|closed`, `latch:locked|unlocked`, `siren:on|off`, `bell:ring`, `alarm:silence`, `mode:auto|manual`, `security:arm|disarm`, `rfid:<UID>`, `auth:add|del:<UID>`, `auth:clear`, `auth:list`, `auth:learn` y `status`.
 
 ## Rutas API
 
