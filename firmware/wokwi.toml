@@ -1,0 +1,6 @@
+[wokwi]
+version = 1
+# Compilar primero con: pio run -e wokwi
+firmware = ".pio/build/wokwi/firmware.bin"
+elf = ".pio/build/wokwi/firmware.elf"
+rfc2217ServerPort = 4000

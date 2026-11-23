@@ -1,0 +1,8 @@
+.venv/
+.pio/
+__pycache__/
+*.py[cod]
+instance/*.sqlite3
+
+# Copia antigua del programa de pruebas (mapa de pines viejo); usar firmware/arduino/
+arduinoIDE/

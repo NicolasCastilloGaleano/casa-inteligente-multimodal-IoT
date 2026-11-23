@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Construcción de la maqueta</title>
+<style>
+:root{--ink:#17222b;--muted:#66727a;--line:#dfe4e1;--paper:#f4f5f2;--card:#fff;--accent:#5d7f2c;--warn-bg:#fff4dc;--warn-ink:#6b4b00;--danger-bg:#fde8e5;--danger-ink:#8a2318;--tip-bg:#e9f2dc;--tip-ink:#3d5517;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e6ebe8;--muted:#9aa5a0;--line:#2e3a40;--paper:#11181d;--card:#1a2329;--accent:#a9cf6b;--warn-bg:#3a3018;--warn-ink:#f3d58f;--danger-bg:#3c1f1b;--danger-ink:#f4b3a9;--tip-bg:#24321a;--tip-ink:#cfe6a8}}
+:root[data-theme="dark"]{--ink:#e6ebe8;--muted:#9aa5a0;--line:#2e3a40;--paper:#11181d;--card:#1a2329;--accent:#a9cf6b;--warn-bg:#3a3018;--warn-ink:#f3d58f;--danger-bg:#3c1f1b;--danger-ink:#f4b3a9;--tip-bg:#24321a;--tip-ink:#cfe6a8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);line-height:1.55}
+header,main{max-width:1060px;margin:auto;padding:0 16px}
+header{padding-top:28px}
+h1{margin:0 0 6px;font-size:28px}
+header p{margin:0;color:var(--muted)}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 4px}
+nav.toc a{font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--card);border-radius:14px;padding:4px 10px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;margin:18px 0}
+section h2{margin:0 0 6px;font-size:20px}
+section h3{margin:18px 0 6px;font-size:16px}
+.lead{color:var(--muted);margin:0 0 12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+td.ok{color:#3f7a17;font-weight:700}td.no{color:#b23b2e;font-weight:700}
+code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+.note{border-radius:8px;padding:10px 12px;margin:10px 0;font-size:14px}
+.warn{background:var(--warn-bg);color:var(--warn-ink)}.danger{background:var(--danger-bg);color:var(--danger-ink)}.tip{background:var(--tip-bg);color:var(--tip-ink)}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gallery figure,.parts figure{margin:0;background:#fff;border:1px solid #dfe4e1;border-radius:8px;overflow:hidden}
+.gallery img,.parts img{display:block;width:100%;height:auto}
+figcaption{font-size:12px;color:#55616a;padding:6px 8px;background:#fff}
+.parts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+ol li,ul li{margin:4px 0}
+.steps>li{margin:10px 0}
+a{color:var(--accent)}
+@media (max-width:820px){.gallery{grid-template-columns:1fr}.parts{grid-template-columns:repeat(2,1fr)}h1{font-size:23px}}
+@media print{body{background:#fff}nav.toc{display:none}section{border:0;padding:0;break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Construcción de la maqueta · Casa multimodal</h1>
+  <p>Diseño paramétrico en <span class="mono">maqueta/maqueta.scad</span> (OpenSCAD). Planos de corte 1:1 en <span class="mono">maqueta/corte_madera/</span>, piezas para imprimir en <span class="mono">maqueta/piezas_stl/</span>. El cableado está en <a href="montaje.html">montaje.html</a>.</p>
+  <nav class="toc">
+    <a href="#revision">Revisión de la propuesta</a><a href="#vistas">Vistas 3D</a><a href="#materiales">Materiales</a><a href="#cortes">Lista de cortes</a>
+    <a href="#impresas">Piezas impresas</a><a href="#mecanismos">Mecanismos</a><a href="#ubicacion">Ubicación de componentes</a><a href="#panel">Panel de control</a><a href="#pasos">Paso a paso</a><a href="#cambios">Cambiar medidas</a>
+  </nav>
+</header>
+<main>
+
+<section id="revision">
+  <h2>1. Revisión de la propuesta (imagen "Opción B")</h2>
+  <p class="lead">La idea general es buena y se mantiene: casa de dos pisos con un lado abierto, compartimento técnico aparte, techo removible, panel físico y portátil con la web. Estos puntos deben ajustarse para que coincidan con el circuito y el firmware que ya funcionan:</p>
+  <table>
+    <thead><tr><th>En la propuesta</th><th>Cómo queda</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td>Panel con 4 botones: Inicio, Alarma, Modo, Reset</td><td>Panel con <b>pulsador de MODO</b> (6 pines, con enclavamiento), <b>botón RESET</b> y 4 potenciómetros</td><td>Los 23 pines útiles del ESP32 ya están ocupados. El RESET va al pin <b>EN</b> (no usa GPIO). El modo seguridad y la prueba de alarma se manejan desde la web o por voz.</td></tr>
+      <tr><td>Potenciómetros: umbral T°, vel. ventilador, apertura cortina, sensibilidad touch</td><td><b>P1 luz ambiente</b> (simula), <b>P2 gas</b> (simula), <b>P3 consigna °C</b>, <b>P4 brillo</b></td><td>El relé solo enciende o apaga, así que no se puede variar la velocidad. La sensibilidad del KY-036 se ajusta con el potenciómetro azul del propio módulo. La cortina es automática según la luz.</td></tr>
+      <tr><td>Ventana vigilada: touch + reed + servo</td><td>Ventana: <b>KY-036 + servo</b>. El reed va en la <b>puerta</b></td><td>El firmware usa el reed para el acceso RFID, la puerta forzada y la intrusión por puerta.</td></tr>
+      <tr><td>"Marco metálico" de la ventana</td><td>Marco de madera o impreso <b>forrado con cinta de aluminio</b></td><td>La maqueta es de madera: la cinta es la superficie conductora que conecta con el KY-036.</td></tr>
+      <tr><td>Sensor de temperatura "DHT22/DS18B20"</td><td><b>KY-028</b></td><td>Es el que tienen. Va en una pared interior, lejos del ventilador.</td></tr>
+      <tr><td>Módulo de distribución "3.3 V"</td><td>Solo <b>fuente de 5 V</b> + riel de 3.3 V que sale del pin 3V3 del ESP32</td><td>No hay ni hace falta una fuente de 3.3 V aparte.</td></tr>
+      <tr><td>Relé para "ventilador, alarma, etc."</td><td>Relé <b>solo para el ventilador</b></td><td>Los buzzers van directo a sus pines.</td></tr>
+      <tr><td>Un solo buzzer</td><td><b>Dos buzzers</b>: sirena (fachada) y timbre (interior)</td><td>El firmware distingue alarma y timbre o confirmaciones.</td></tr>
+      <tr><td>—</td><td class="ok">Agregar: botón de <b>timbre</b> en la fachada, <b>LED</b> de luz, <b>pasacables</b>, cara del lector RFID afuera</td><td>No aparecían en la propuesta.</td></tr>
+      <tr><td>Cortina tipo persiana con el motor a la vista</td><td>Cortina <b>enrollable</b> por dentro de la ventana</td><td>El motor está por dentro, sobre la ventana, y el eje mueve un rodillo de madera de 8 mm.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="vistas">
+  <h2>2. Vistas 3D</h2>
+  <p class="lead">El lado izquierdo de la casa queda <b>abierto</b> para ver el interior y los mecanismos durante la sustentación. El techo y la tapa del compartimento se retiran.</p>
+  <div class="gallery">
+    <figure><img src="../maqueta/renders/vista_frontal.png" alt="Vista frontal de la maqueta con techo, fachada, compartimento técnico y panel de control"><figcaption>Fachada: puerta con RFID y timbre, ventana con marco de aluminio, sirena, compartimento y panel.</figcaption></figure>
+    <figure><img src="../maqueta/renders/vista_interior.png" alt="Vista interior sin techo mostrando cortina, servo de la ventana, KY-036 y pestillo"><figcaption>Interior sin techo: rodillo y motor de la cortina, servo de la ventana, KY-036, pestillo y ventilador (pared trasera).</figcaption></figure>
+    <figure><img src="../maqueta/renders/vista_compartimento.png" alt="Compartimento técnico abierto con protoboard, relé y ULN2003"><figcaption>Compartimento técnico abierto: protoboard con ESP32, relé, ULN2003 y bornera de 5 V.</figcaption></figure>
+  </div>
+  <table>
+    <thead><tr><th>Medida</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Base</td><td>560 × 450 mm (MDF o triplex de 9 mm)</td></tr>
+      <tr><td>Casa (sin compartimento)</td><td>350 × 260 mm; muros de 325 mm + cumbrera de 110 mm (alto total ≈ 440 mm)</td></tr>
+      <tr><td>Pisos</td><td>Planta baja de 170 mm libres; planta alta de 150 mm</td></tr>
+      <tr><td>Compartimento técnico</td><td>120 × 260 × 325 mm, adosado a la derecha</td></tr>
+      <tr><td>Panel de control</td><td>280 × 110 mm, inclinado (35 → 75 mm), delante del compartimento</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="materiales">
+  <h2>3. Materiales</h2>
+  <table>
+    <thead><tr><th>Material</th><th>Cantidad</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td>MDF o triplex de 5 mm</td><td>≈ 0,9 m² (por ejemplo, 2 láminas de 60 × 80 cm)</td><td>Muros, entrepiso, techo, compartimento y panel</td></tr>
+      <tr><td>MDF o triplex de 9 mm</td><td>560 × 450 mm</td><td>Base</td></tr>
+      <tr><td>Listón de 10 × 10 mm</td><td>≈ 2,5 m</td><td>Esquineros y apoyos del entrepiso (pegados por dentro)</td></tr>
+      <tr><td>Palo redondo (dowel) de 8 mm</td><td>15 cm</td><td>Rodillo de la cortina</td></tr>
+      <tr><td>Acrílico de 3 mm o acetato grueso</td><td>110 × 90 mm</td><td>Vidrio corredizo de la ventana</td></tr>
+      <tr><td>Tela delgada o cartulina</td><td>110 × 110 mm</td><td>Cortina enrollable (con un palito de peso abajo)</td></tr>
+      <tr><td>Cinta de aluminio (la de ductos)</td><td>1 rollo pequeño</td><td>"Marcos metálicos" vigilados por el KY-036</td></tr>
+      <tr><td>Hilo de nylon (pesca) y ligas</td><td>1 m / 4 ligas</td><td>Ventana y pestillo: el servo tira del hilo y la liga regresa</td></tr>
+      <tr><td>Imanes de neodimio pequeños (≈ 10 × 3 mm)</td><td>3–5</td><td>Imán del reed y cierre de la tapa del compartimento</td></tr>
+      <tr><td>Bisagras pequeñas (o cinta de tela)</td><td>2</td><td>Puerta</td></tr>
+      <tr><td>Tornillos M3 × 10 y tornillos de madera de 2,5 mm</td><td>≈ 30</td><td>Soportes, motor, servos y ventilador</td></tr>
+      <tr><td>Cables dupont macho-hembra de 20 y 30 cm, y cable de calibre 22 AWG</td><td>Según recorrido</td><td>De los componentes al compartimento</td></tr>
+      <tr><td>Cola blanca, silicona caliente, cinta doble faz, cintillos</td><td>—</td><td>Ensamble y orden de cables</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="cortes">
+  <h2>4. Lista de cortes en madera</h2>
+  <p class="lead">Cada pieza tiene su plano <b>SVG a escala 1:1 en milímetros</b>, con todas las aberturas. Sirve para cortadora láser o para imprimir y pegar como plantilla sobre la madera (en papel de 1:1, por partes). Las medidas ya consideran el espesor de 5 mm.</p>
+  <table>
+    <thead><tr><th>Pieza</th><th>Cant.</th><th>Medida (mm)</th><th>Aberturas</th><th>Plano</th></tr></thead>
+    <tbody>
+      <tr><td>Fachada (frente)</td><td>1</td><td>350 × 325 + triángulo de 110</td><td>Puerta 70 × 140 · ventana 100 × 80 · timbre 12,6 × 12,6 · sirena Ø23,5 · cable KY-036 Ø4</td><td><a href="../maqueta/corte_madera/frente.svg">frente.svg</a></td></tr>
+      <tr><td>Pared trasera</td><td>1</td><td>350 × 325 + triángulo de 110</td><td>Ventilador Ø37 + 4 tornillos a 32 mm</td><td><a href="../maqueta/corte_madera/trasera.svg">trasera.svg</a></td></tr>
+      <tr><td>Pared compartida (casa | compartimento)</td><td>1</td><td>250 × 325</td><td>4 pasacables de Ø16</td><td><a href="../maqueta/corte_madera/pared_compartida.svg">pared_compartida.svg</a></td></tr>
+      <tr><td>Entrepiso</td><td>1</td><td>345 × 250</td><td>LED Ø5,2 · hueco de escalera 60 × 110 (decorativo)</td><td><a href="../maqueta/corte_madera/entrepiso.svg">entrepiso.svg</a></td></tr>
+      <tr><td>Techo</td><td>2</td><td>219 × 284</td><td>—</td><td><a href="../maqueta/corte_madera/techo.svg">techo.svg</a></td></tr>
+      <tr><td>Compartimento: trasera</td><td>1</td><td>120 × 325</td><td>USB Ø14 · entrada de 5 V Ø12 · 6 ranuras de ventilación</td><td><a href="../maqueta/corte_madera/comp_trasera.svg">comp_trasera.svg</a></td></tr>
+      <tr><td>Compartimento: lateral</td><td>1</td><td>250 × 325</td><td>— (aquí van atornillados la protoboard, el relé y el ULN2003)</td><td><a href="../maqueta/corte_madera/comp_lateral.svg">comp_lateral.svg</a></td></tr>
+      <tr><td>Compartimento: tapa frontal</td><td>1</td><td>120 × 325</td><td>Agujero de dedo Ø18 (se fija con imanes)</td><td><a href="../maqueta/corte_madera/comp_frente.svg">comp_frente.svg</a></td></tr>
+      <tr><td>Compartimento: tapa superior</td><td>1</td><td>120 × 260</td><td>—</td><td><a href="../maqueta/corte_madera/comp_tapa.svg">comp_tapa.svg</a></td></tr>
+      <tr><td>Base (9 mm)</td><td>1</td><td>560 × 450</td><td>—</td><td><a href="../maqueta/corte_madera/base.svg">base.svg</a></td></tr>
+      <tr><td>Panel: laterales</td><td>2</td><td>Trapecio 110 × (35 / 75)</td><td>—</td><td><a href="../maqueta/corte_madera/panel_lado.svg">panel_lado.svg</a></td></tr>
+      <tr><td>Panel: frente</td><td>1</td><td>280 × 35</td><td>—</td><td><a href="../maqueta/corte_madera/panel_frente.svg">panel_frente.svg</a></td></tr>
+      <tr><td>Panel: trasera</td><td>1</td><td>280 × 75</td><td>Salida de cables Ø14</td><td><a href="../maqueta/corte_madera/panel_trasera.svg">panel_trasera.svg</a></td></tr>
+      <tr><td>Panel: tapa inclinada</td><td>1</td><td>270 × 117</td><td>4 potenciómetros Ø7,5 · MODO (ver nota) · RESET 12,6 × 12,6</td><td><a href="../maqueta/corte_madera/panel_tapa.svg">panel_tapa.svg</a></td></tr>
+      <tr><td>Puerta (hoja)</td><td>1</td><td>68 × 138 (3–5 mm)</td><td>—</td><td><a href="../maqueta/corte_madera/puerta.svg">puerta.svg</a></td></tr>
+      <tr><td>Marco de la ventana</td><td>1</td><td>116 × 96, con ancho de 8 mm</td><td>Se forra con cinta de aluminio</td><td><a href="../maqueta/corte_madera/marco_ventana.svg">marco_ventana.svg</a></td></tr>
+    </tbody>
+  </table>
+  <div class="note warn"><b>Mide tus componentes antes de cortar</b> y, si no coinciden, cambia el valor en <span class="mono">maqueta.scad</span> y regenera los planos: diámetro del buzzer (<span class="mono">BUZZER_D</span>), tamaño del ventilador (<span class="mono">VENTILADOR</span>, <span class="mono">VENTILADOR_TORNILLOS</span>) y eje de los potenciómetros (<span class="mono">POT_D</span>).</div>
+</section>
+
+<section id="impresas">
+  <h2>5. Piezas impresas (o su alternativa en madera)</h2>
+  <p class="lead">Archivos STL en <span class="mono">maqueta/piezas_stl/</span>. Imprime en PLA con 20 % de relleno; no requieren soportes si se apoyan sobre su cara plana. Si no tienen impresora, cada una tiene una alternativa sencilla.</p>
+  <div class="parts">
+    <figure><img src="../maqueta/renders/pieza_acople_28byj.png" alt=""><figcaption><b>acople_28byj</b> ×1: une el eje del motor con el rodillo de 8 mm. <i>Madera:</i> agujero de 5 mm en la punta del palo + silicona caliente.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_soporte_28byj.png" alt=""><figcaption><b>soporte_28byj</b> ×1: sujeta el motor (tornillos M4 a 35 mm). <i>Madera:</i> escuadra de 5 mm con los mismos agujeros.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_soporte_rodillo.png" alt=""><figcaption><b>soporte_rodillo</b> ×1: el otro extremo del rodillo gira en el agujero de 8,8 mm. <i>Madera:</i> escuadra con un agujero de 9 mm.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_carrete_servo.png" alt=""><figcaption><b>carrete_servo</b> ×2: se pega al brazo del servo y enrolla el hilo. <i>Madera:</i> dos discos de Ø30 con un tarugo al medio, pegados al brazo.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_soporte_servo.png" alt=""><figcaption><b>soporte_servo</b> ×2: el servo queda con el eje hacia afuera del muro. <i>Madera:</i> taco de 15 mm con el hueco del servo.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_guia_pestillo.png" alt=""><figcaption><b>guia_pestillo</b> ×1: canal del cerrojo, con un pasador para la liga. <i>Madera:</i> 3 listones formando un túnel.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_cerrojo.png" alt=""><figcaption><b>cerrojo</b> ×1: barra que se desliza. El hilo y la liga se amarran al tope. <i>Madera:</i> palito de helado con un clavito.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_cerradero.png" alt=""><figcaption><b>cerradero</b> ×1: se pega en la cara interior de la hoja de la puerta; el cerrojo entra ahí.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_riel_ventana.png" alt=""><figcaption><b>riel_ventana</b> ×2 (arriba y abajo): riel en U para el vidrio de 3 mm. <i>Madera:</i> dos listones con un palito de 3 mm entre ellos.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_soporte_reed.png" alt=""><figcaption><b>soporte_reed</b> ×1: protege el vidrio del reed sobre el marco de la puerta.</figcaption></figure>
+    <figure><img src="../maqueta/renders/pieza_soporte_iman.png" alt=""><figcaption><b>soporte_iman</b> ×1: para imán de 10 × 3 mm en el canto de la puerta (<span class="mono">IMAN_D</span>, <span class="mono">IMAN_H</span>).</figcaption></figure>
+  </div>
+</section>
+
+<section id="mecanismos">
+  <h2>6. Mecanismos</h2>
+  <h3>Cortina enrollable (28BYJ-48 + ULN2003)</h3>
+  <ul>
+    <li>El motor va en su soporte, por dentro de la fachada, a la derecha y encima de la ventana. Su eje queda horizontal y a 22 mm del muro.</li>
+    <li>El acople une el eje con el <b>palo de 8 mm</b> (≈ 125 mm). El otro extremo gira en el soporte del rodillo.</li>
+    <li>Pega la tela al rodillo con cinta doble faz y ponle un palito abajo para que caiga recta.</li>
+    <li>Al encender el ESP32, la cortina debe estar <b>cerrada (abajo)</b>. Calibra <span class="mono">PASOS_CORTINA</span> con la opción <b>c</b> del programa de pruebas.</li>
+  </ul>
+  <h3>Ventana corrediza (servo continuo + hilo + liga)</h3>
+  <ul>
+    <li>Dos rieles en la cara interior, arriba y abajo de la abertura, de x = 120 a 340 mm. El vidrio de 110 × 90 se desliza a la derecha para abrir.</li>
+    <li>El servo va <b>sobre el riel superior</b>, separado 15 mm del muro con un taco, para que el vidrio pase por debajo sin chocar.</li>
+    <li>El hilo va del carrete del servo a la esquina superior derecha del vidrio. Una liga, desde la esquina izquierda hasta un clavito a la izquierda de la ventana, lo devuelve a cerrado.</li>
+    <li>Así un servo continuo nunca empuja: al "abrir" enrolla el hilo y al "cerrar" lo suelta y la liga hace el trabajo. Calibra con la opción <b>v</b>.</li>
+  </ul>
+  <h3>Pestillo de la puerta (servo continuo + hilo + liga)</h3>
+  <ul>
+    <li>La puerta abre <b>hacia adentro</b>. La guía del pestillo se atornilla en la cara interior del muro, a la derecha de la puerta, a ≈ 70 mm de altura. El cerradero va pegado en la hoja.</li>
+    <li>La liga, entre el tope del cerrojo y el pasador de la guía, mantiene el pestillo <b>cerrado</b>. El servo, al lado, enrolla el hilo y tira del cerrojo para <b>abrir</b>.</li>
+    <li>Calibra con la opción <b>p</b>. Así, aunque el servo gire un poco de más, solo se tensa la liga.</li>
+  </ul>
+  <div class="note warn">Usa ligas <b>suaves</b> en la ventana y en el pestillo. El firmware deja el servo sin señal cuando termina de moverse: si la liga es muy fuerte, puede hacer girar el servo al revés y cerrar antes de tiempo. Si pasa, usa una liga más floja o dos vueltas menos de hilo.</div>
+  <h3>Marcos vigilados (KY-036)</h3>
+  <ul>
+    <li>Forra el <b>marco de la ventana</b> (y si quieres, el de la puerta) con cinta de aluminio, por la cara de afuera.</li>
+    <li>Pasa un cable delgado por el agujero de Ø4 junto a la ventana, desde la cinta hasta la <b>pata metálica</b> del KY-036, que va por dentro, debajo de la ventana. Usa un cable lo más corto posible.</li>
+    <li>Si hay varios marcos, únelos entre sí con cinta o cable: todos quedan vigilados por el mismo sensor.</li>
+  </ul>
+  <h3>Puerta: reed + imán</h3>
+  <ul><li>El reed va en su soporte sobre el marco superior de la puerta, por dentro. El imán va en su soporte, en el canto superior de la hoja. Con la puerta cerrada, deben quedar a menos de 10 mm.</li></ul>
+</section>
+
+<section id="ubicacion">
+  <h2>7. Ubicación de cada componente</h2>
+  <table>
+    <thead><tr><th>Componente</th><th>Dónde va</th><th>Fijación</th><th>Cable por</th></tr></thead>
+    <tbody>
+      <tr><td>RFID RC522</td><td>Cara interior de la fachada, a la derecha de la puerta, entre 100 y 160 mm de alto. Afuera, una plaquita marca dónde acercar la tarjeta</td><td>Cinta doble faz (lee a través de 5 mm de madera)</td><td>Pasacables inferior delantero</td></tr>
+      <tr><td>Botón del timbre</td><td>Fachada, a la izquierda de la puerta (agujero de 12,6 mm)</td><td>Silicona por dentro</td><td>Pasacables inferior delantero</td></tr>
+      <tr><td>Pestillo (servo 1) + reed</td><td>Interior, junto a la puerta</td><td>Tornillos / silicona</td><td>Pasacables inferior delantero</td></tr>
+      <tr><td>Buzzer del timbre</td><td>Interior de la planta baja, en la pared compartida</td><td>Silicona</td><td>Pasacables central</td></tr>
+      <tr><td>LED de luz</td><td>Agujero central del entrepiso (alumbra la planta baja)</td><td>Silicona desde arriba</td><td>Pasacables trasero superior</td></tr>
+      <tr><td>Motor de la cortina</td><td>Planta alta, encima y a la derecha de la ventana</td><td>Soporte con tornillos M4</td><td>Pasacables superior delantero → ULN2003</td></tr>
+      <tr><td>Servo de la ventana (servo 2)</td><td>Sobre el riel superior, separado 15 mm del muro</td><td>Soporte + taco</td><td>Pasacables superior delantero</td></tr>
+      <tr><td>KY-036</td><td>Debajo de la ventana, por dentro</td><td>Cinta doble faz</td><td>Pasacables superior delantero</td></tr>
+      <tr><td>Sirena (buzzer de alarma)</td><td>Fachada, a la derecha de la ventana (agujero de Ø23,5)</td><td>A presión + silicona</td><td>Pasacables superior delantero</td></tr>
+      <tr><td>Ventilador</td><td>Pared trasera, planta alta (sopla hacia afuera)</td><td>4 tornillos</td><td>Pasacables trasero superior → relé</td></tr>
+      <tr><td>KY-028 (temperatura)</td><td>Planta alta, pared compartida, a media altura y lejos del ventilador</td><td>Cinta doble faz</td><td>Pasacables trasero superior</td></tr>
+      <tr><td>ESP32, protoboard, relé, ULN2003, bornera de 5 V</td><td>Compartimento técnico, atornillados a la pared lateral: ULN2003 arriba, relé, protoboard al medio y bornera abajo</td><td>Tornillos / doble faz</td><td>USB y 5 V por la trasera del compartimento</td></tr>
+    </tbody>
+  </table>
+  <div class="note tip">Etiqueta cada cable en ambos extremos (por ejemplo "D25 pestillo") con cinta de enmascarar. Agrupa los cables de cada pasacables con cintillos. Mantén el cable del KY-036 lejos de los cables de los motores.</div>
+</section>
+
+<section id="panel">
+  <h2>8. Panel de control físico</h2>
+  <table>
+    <thead><tr><th>Elemento</th><th>Rótulo sugerido</th><th>Conexión</th></tr></thead>
+    <tbody>
+      <tr><td>Pulsador de 6 pines <b>con enclavamiento</b></td><td>MODO · hundido = Automático</td><td>Una fila: medio → D22, un extremo → GND (ver <a href="montaje.html#botones">montaje, diagrama 6</a>)</td></tr>
+      <tr><td>Pulsador</td><td>RESET</td><td><b>EN</b> y GND (reinicia el ESP32; no usa un GPIO)</td></tr>
+      <tr><td>Potenciómetro 1</td><td>Luz ambiente (simulada)</td><td>Centro → D33</td></tr>
+      <tr><td>Potenciómetro 2</td><td>Gas (simulado)</td><td>Centro → D34</td></tr>
+      <tr><td>Potenciómetro 3</td><td>Consigna °C (18–32)</td><td>Centro → D35</td></tr>
+      <tr><td>Potenciómetro 4</td><td>Brillo de la luz</td><td>Centro → VP (36)</td></tr>
+    </tbody>
+  </table>
+  <div class="note tip"><b>Pulsador de MODO en lugar del DIP:</b> el plano <span class="mono">panel_tapa.svg</span> todavía trae la ventana de 24 × 14 mm del DIP. En ese mismo centro, corta en su lugar un <b>cuadrado de ≈ 8,4 mm</b> (mide tu pulsador; algunos son de 7 × 7). Si ya cortaste la ventana grande, tápala con una plaquita de 3 mm con el agujero cuadrado. Para fijarlo, suéldalo en un trocito de baquelita perforada pegado bajo la tapa, con el botón asomando, o pega el cuerpo con silicona y suelda los cables a las patas.</div>
+  <div class="note warn">El agujero de 7,5 mm es para potenciómetros de panel (eje con rosca M7). Si los tuyos son de protoboard (sin rosca), pégalos por debajo de la tapa y deja asomar el eje, o haz el agujero del tamaño de su perilla.</div>
+</section>
+
+<section id="pasos">
+  <h2>9. Paso a paso</h2>
+  <ol class="steps">
+    <li><b>Corta todas las piezas.</b> Imprime los SVG a escala 1:1 (en el diálogo de impresión, "tamaño real" o 100 %), pégalos en la madera y corta. Lija los bordes.</li>
+    <li><b>Haz las aberturas</b> (puerta, ventana, agujeros): taladro + sierra de calar, o bisturí si es MDF de 3 mm.</li>
+    <li><b>Pinta</b> las piezas antes de armar (es más fácil). Deja sin pintar la zona del marco de la ventana donde va la cinta de aluminio.</li>
+    <li><b>Arma la casa sobre la base:</b> pega la fachada, la trasera y la pared compartida con cola y listones de 10 × 10 en las esquinas interiores. Comprueba la escuadra.</li>
+    <li><b>Entrepiso:</b> pega listones a 170 mm de altura en las tres paredes y apoya el entrepiso encima. Déjalo sin pegar hasta terminar el cableado de la planta baja.</li>
+    <li><b>Compartimento:</b> pega la trasera y el lateral. La tapa frontal se sujeta con imanes y la superior solo se apoya.</li>
+    <li><b>Panel:</b> arma la caja inclinada y monta el pulsador de MODO, el RESET y los 4 potenciómetros antes de pegarlo a la base.</li>
+    <li><b>Instala los mecanismos</b> (sección 6) y prueba cada uno <i>a mano</i> antes de conectarlo.</li>
+    <li><b>Cablea por etapas</b> siguiendo <a href="montaje.html">montaje.html</a>, con el programa de pruebas: sensores primero y motores al final.</li>
+    <li><b>Calibra</b> los servos (p, v) y la cortina (c), ajusta el KY-036 y carga el firmware principal.</li>
+    <li><b>Techo:</b> las dos aguas se apoyan sobre los muros. Pega dos topes por debajo para que no se deslicen, pero no las pegues: deben poder retirarse.</li>
+  </ol>
+</section>
+
+<section id="cambios">
+  <h2>10. Cambiar medidas y regenerar los archivos</h2>
+  <p>Todas las medidas están al inicio de <span class="mono">maqueta/maqueta.scad</span>. Para verlo, abre el archivo con OpenSCAD (ya está instalado) y pulsa <b>F5</b>. Después de cambiar algo, regenera todo con:</p>
+  <pre class="mono">cd casa-multimodal/maqueta
+python generar.py</pre>
+  <p>Así se actualizan los planos (<span class="mono">corte_madera/*.svg</span>), las piezas (<span class="mono">piezas_stl/*.stl</span>) y las imágenes de este manual.</p>
+</section>
+</main>
+</body>
+</html>

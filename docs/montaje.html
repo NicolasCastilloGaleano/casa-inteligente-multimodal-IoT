@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Montaje casa multimodal</title>
+<style>
+:root{--ink:#17222b;--muted:#66727a;--line:#dfe4e1;--paper:#f4f5f2;--card:#fff;--accent:#5d7f2c;--warn-bg:#fff4dc;--warn-ink:#6b4b00;--danger-bg:#fde8e5;--danger-ink:#8a2318;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e6ebe8;--muted:#9aa5a0;--line:#2e3a40;--paper:#11181d;--card:#1a2329;--accent:#a9cf6b;--warn-bg:#3a3018;--warn-ink:#f3d58f;--danger-bg:#3c1f1b;--danger-ink:#f4b3a9}}
+:root[data-theme="dark"]{--ink:#e6ebe8;--muted:#9aa5a0;--line:#2e3a40;--paper:#11181d;--card:#1a2329;--accent:#a9cf6b;--warn-bg:#3a3018;--warn-ink:#f3d58f;--danger-bg:#3c1f1b;--danger-ink:#f4b3a9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);line-height:1.5}
+header{padding:28px 16px 10px;max-width:1040px;margin:auto}
+header h1{margin:0 0 6px;font-size:28px}
+header p{margin:0;color:var(--muted)}
+main{max-width:1040px;margin:auto;padding:0 16px 60px}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 8px}
+nav.toc a{font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--card);border-radius:14px;padding:4px 10px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;margin:18px 0;break-inside:avoid}
+section h2{margin:0 0 4px;font-size:19px}
+section h2 .num{display:inline-block;min-width:26px;color:var(--accent)}
+.lead{color:var(--muted);margin:0 0 12px;font-size:14px}
+.sheet{background:#fff;border:1px solid #dfe4e1;border-radius:8px;overflow-x:auto;margin:10px 0}
+.sheet svg{display:block;min-width:760px;width:100%;height:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.chip{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid #0002}
+code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+.note{border-radius:8px;padding:10px 12px;margin:8px 0;font-size:13.5px}
+.note.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.note.danger{background:var(--danger-bg);color:var(--danger-ink)}
+.note.tip{background:#e9f2dc;color:#3d5517}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .note.tip{background:#24321a;color:#cfe6a8}}
+.test{display:inline-block;font-size:12px;font-weight:700;background:var(--ink);color:var(--paper);border-radius:4px;padding:2px 8px;margin-top:4px}
+ol.steps li{margin:6px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}header h1{font-size:23px}}
+@media print{body{background:#fff}nav.toc{display:none}section{border:0;padding:0;margin:0 0 18px;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Guía de montaje · Casa multimodal</h1>
+  <p>ESP32 DevKit de 30 pines (15 por lado). Cada diagrama muestra solo los pines que usa ese componente. Los cables de colores son sugerencias: lo importante es que cada punto termine donde indica la tabla.</p>
+  <nav class="toc" id="toc"></nav>
+</header>
+<main id="contenido"></main>
+
+<script>
+// ------------------------------------------------------------------ datos del montaje
+const C = { v33: "#d63a2f", v5: "#ec8a1a", gnd: "#2b2f33", s1: "#2e9d4f", s2: "#2a6fdb", s3: "#c9a400", s4: "#8a4bd6", s5: "#16a3a3", s6: "#d6408f", s7: "#8c5a2b" };
+const RAIL = { "3V3": { name: "Riel 3.3 V", color: C.v33 }, "5V": { name: "Riel 5 V (fuente externa)", color: C.v5 }, "GND": { name: "Riel GND (tierra común)", color: C.gnd } };
+
+// Placa de 30 pines: lado izquierdo y derecho, de arriba (antena) a abajo (USB).
+const BOARD = {
+  left: [["EN", "", "Botón RESET del panel (opcional, a GND)", "#9aa5a0"], ["VP", 36, "Potenciómetro BRILLO (centro)", C.s4], ["VN", 39, "KY-036 contacto (D0) · seguridad", C.s2], ["D34", 34, "Potenciómetro GAS (centro)", C.s1], ["D35", 35, "Potenciómetro CONSIGNA (centro)", C.s3], ["D32", 32, "KY-028 temperatura (A0)", C.s7], ["D33", 33, "Potenciómetro LUZ (centro)", C.s5], ["D25", 25, "Servo PESTILLO (naranja)", C.s1], ["D26", 26, "Servo VENTANA (naranja)", C.s2], ["D27", 27, "ULN2003 IN4", C.s4], ["D14", 14, "ULN2003 IN3", C.s3], ["D12", 12, "ULN2003 IN2", C.s2], ["D13", 13, "ULN2003 IN1", C.s1], ["GND", "", "Riel GND", C.gnd], ["VIN", "", "No conectar (se usa el USB)"]],
+  right: [["D23", 23, "RFID MOSI", C.s2], ["D22", 22, "Pulsador MODO (6 pines, enclavamiento)", C.s4], ["TX0", 1, "No usar (USB)"], ["RX0", 3, "No usar (USB)"], ["D21", 21, "Botón TIMBRE", C.s1], ["D19", 19, "RFID MISO", C.s3], ["D18", 18, "RFID SCK", C.s5], ["D5", 5, "RFID SDA", C.s6], ["TX2", 17, "Buzzer TIMBRE (+)", C.s4], ["RX2", 16, "Buzzer ALARMA (+)", C.s6], ["D4", 4, "Relé IN", C.s4], ["D2", 2, "Control de luz (PWM)", C.s3], ["D15", 15, "Reed switch (puerta)", C.s7], ["GND", "", "Riel GND", C.gnd], ["3V3", "", "Riel 3.3 V", C.v33]]
+};
+
+// Diagramas: esp = pines del ESP32 usados; parts = componentes (pines en orden físico);
+// wires = [desde, hasta, color]. Puntos: "esp:D32", "pieza:pin" o "rail:3V3|5V|GND".
+const DIAGRAMS = [
+  {
+    id: "energia", title: "Alimentación y tierra común", lead: "Hazlo primero. El ESP32 se alimenta por el USB del computador; la fuente de 5 V alimenta solo los motores, el relé y el ventilador.",
+    esp: ["3V3", "GND"], rails: ["3V3", "5V", "GND"],
+    parts: [{ id: "fuente", name: "Fuente 5 V", pins: ["+", "−"] }],
+    wires: [["esp:3V3", "rail:3V3", C.v33], ["esp:GND", "rail:GND", C.gnd], ["fuente:+", "rail:5V", C.v5], ["fuente:−", "rail:GND", C.gnd]],
+    notes: [
+      ["danger", "El <b>+</b> de la fuente de 5 V <b>nunca</b> va a un pin del ESP32 (ni a VIN mientras esté el USB). Lo único que se une entre la fuente y el ESP32 es el <b>GND</b>."],
+      ["warn", "No unas el riel de 3.3 V con el de 5 V. Revisa con el multímetro, antes de conectar el ESP32, que no haya continuidad entre ningún riel positivo y GND."],
+      ["tip", "En la protoboard: usa un par de rieles laterales para 3.3 V / GND y el otro par para 5 V / GND, y une los dos GND con un cable."]
+    ],
+    extra: `<table><thead><tr><th>Riel</th><th>Qué se conecta</th><th>Consumo aproximado</th></tr></thead><tbody>
+      <tr><td><span class="chip" style="background:${C.v33}"></span>3.3 V (pin 3V3 del ESP32)</td><td>4 potenciómetros, KY-028, KY-036, RFID (3.3V y RST)</td><td>&lt; 40 mA</td></tr>
+      <tr><td><span class="chip" style="background:${C.v5}"></span>5 V (fuente)</td><td>Relé (DC+), ventilador (por el relé), tarjeta ULN2003 (+), 2 servos (rojo)</td><td>Hasta ~1.5 A con todo moviéndose → usa una fuente de <b>2 A</b> o más</td></tr>
+      <tr><td><span class="chip" style="background:${C.gnd}"></span>GND común</td><td>Todo: ESP32, fuente, sensores, motores, relé, buzzers</td><td>—</td></tr></tbody></table>`
+  },
+  {
+    id: "potenciometros", title: "Cuatro potenciómetros", lead: "Simulan el sensor de luz y el de gas, y dan dos ajustes reales: la consigna del termostato y el brillo de la luz.",
+    esp: ["D33", "D34", "D35", "VP"], rails: ["3V3", "GND"],
+    parts: [
+      { id: "pl", name: "Pot. LUZ AMBIENTE", pins: ["Extremo 1", "Centro", "Extremo 2"] },
+      { id: "pg", name: "Pot. GAS", pins: ["Extremo 1", "Centro", "Extremo 2"] },
+      { id: "pc", name: "Pot. CONSIGNA (18–32 °C)", pins: ["Extremo 1", "Centro", "Extremo 2"] },
+      { id: "pb", name: "Pot. BRILLO DE LA LUZ", pins: ["Extremo 1", "Centro", "Extremo 2"] }
+    ],
+    wires: [["pl:Extremo 1", "rail:3V3", C.v33], ["pl:Centro", "esp:D33", C.s5], ["pl:Extremo 2", "rail:GND", C.gnd],
+            ["pg:Extremo 1", "rail:3V3", C.v33], ["pg:Centro", "esp:D34", C.s1], ["pg:Extremo 2", "rail:GND", C.gnd],
+            ["pc:Extremo 1", "rail:3V3", C.v33], ["pc:Centro", "esp:D35", C.s3], ["pc:Extremo 2", "rail:GND", C.gnd],
+            ["pb:Extremo 1", "rail:3V3", C.v33], ["pb:Centro", "esp:VP", C.s4], ["pb:Extremo 2", "rail:GND", C.gnd]],
+    notes: [
+      ["danger", "El pin del <b>centro</b> siempre va al ESP32. Si pones el centro en 3.3 V o GND, al girar hasta el tope haces un <b>cortocircuito</b>."],
+      ["warn", "Extremos a <b>3.3 V</b>, nunca a 5 V. Los extremos se pueden invertir: solo cambia el sentido de giro."]
+    ], test: "Prueba 7"
+  },
+  {
+    id: "temperatura", title: "Sensor de temperatura KY-028", lead: "Termistor NTC. Se lee la salida analógica A0; D0 solo indica si se superó el umbral del tornillito azul, y no se usa.",
+    esp: ["D32"], rails: ["3V3", "GND"],
+    parts: [{ id: "ky", name: "KY-028", pins: ["A0", "G (GND)", "+ (VCC)", "D0"] }],
+    wires: [["ky:A0", "esp:D32", C.s7], ["ky:G (GND)", "rail:GND", C.gnd], ["ky:+ (VCC)", "rail:3V3", C.v33]],
+    notes: [
+      ["danger", "Aliméntalo con <b>3.3 V</b>. Con 5 V, la salida A0 puede pasar de 3.3 V y dañar el pin del ESP32."],
+      ["tip", "D0 queda sin conectar. Si al calentarlo con los dedos la temperatura <i>baja</i>, cambia <code>NTC_HACIA_GND</code> en <code>pines.h</code>. Para afinar, compara con un termómetro y ajusta <code>TEMPERATURA_AJUSTE_C</code>."]
+    ], test: "Prueba 7"
+  },
+  {
+    id: "contacto", title: "Sensor de contacto metálico KY-036 (modo seguridad)", lead: "Con la seguridad activada, si alguien toca un marco metálico de una ventana o una puerta, el sensor lo detecta y dispara la alarma de intrusión.",
+    esp: ["VN"], rails: ["3V3", "GND"],
+    parts: [
+      { id: "ky36", name: "KY-036", pins: ["A0", "G (GND)", "+ (VCC)", "D0", "Punta metálica del sensor"] },
+      { id: "marco", name: "Marcos metálicos (ventana/puerta)", pins: ["Cable al marco"] }
+    ],
+    wires: [["ky36:D0", "esp:VN", C.s2], ["ky36:G (GND)", "rail:GND", C.gnd], ["ky36:+ (VCC)", "rail:3V3", C.v33], ["ky36:Punta metálica del sensor", "marco:Cable al marco", C.s7]],
+    notes: [
+      ["tip", "Enrolla o suelda un cable a la <b>punta metálica</b> del KY-036 (la pata del transistor Darlington que sobresale del módulo) y llévalo al marco. Si hay varios marcos metálicos, únelos con el mismo cable: todos quedan vigilados."],
+      ["warn", "<b>Calibra la sensibilidad</b> con el potenciómetro azul del módulo: gíralo hasta que el LED2 esté apagado en reposo y se encienda solo al tocar el marco. Un cable largo capta ruido; cuanto más corto y lejos de los cables de motores, mejor. El firmware exige 80 ms de contacto estable para evitar falsas alarmas."],
+      ["danger", "Aliméntalo con <b>3.3 V</b> para que D0 no pase de 3.3 V. A0 queda sin conectar. Los marcos no deben tocar ningún otro cable del circuito."],
+      ["tip", "Si el estado aparece al revés (contacto sin tocar nada), cambia <code>CONTACTO_ACTIVO_EN_ALTO</code> en <code>pines.h</code>."]
+    ],
+    test: "Prueba 8"
+  },
+  {
+    id: "reed", title: "Reed switch (sensor de la puerta)", lead: "Se cierra con un imán. Pega el reed en el marco y el imán en la puerta: con la puerta cerrada, el imán queda junto al reed.",
+    esp: ["D15"], rails: ["GND"],
+    parts: [{ id: "rd", name: "Reed switch", pins: ["Terminal 1 (o S)", "Terminal 2 (o −)"] }],
+    wires: [["rd:Terminal 1 (o S)", "esp:D15", C.s7], ["rd:Terminal 2 (o −)", "rail:GND", C.gnd]],
+    notes: [
+      ["tip", "Un reed suelto no tiene polaridad: un terminal al D15 y otro a GND. El ESP32 activa su resistencia pull-up interna."],
+      ["warn", "Si es un <b>módulo</b> de 3 pines (S, +, −): S → D15, + → <b>3.3 V</b>, − → GND. Si la puerta aparece al revés, cambia <code>PUERTA_ABIERTA_EN_ALTO</code>."]
+    ], test: "Prueba 8"
+  },
+  {
+    id: "botones", title: "Botón del timbre y pulsador de MODO", lead: "El botón de la fachada toca el timbre. El pulsador de 6 pines con enclavamiento elige el modo: hundido = automático, arriba = manual (o al revés según el extremo que uses).",
+    esp: ["D21", "D22"], rails: ["GND"],
+    parts: [
+      { id: "bt", name: "Pulsador TIMBRE (momentáneo)", pins: ["Pata A", "Pata B (diagonal)"] },
+      { id: "modo", name: "Pulsador MODO 6 pines (vista de abajo)", pins: ["Fila A · extremo 1", "Fila A · medio (común)", "Fila A · extremo 2", "Fila B · extremo 1", "Fila B · medio (común)", "Fila B · extremo 2"] }
+    ],
+    wires: [["bt:Pata A", "esp:D21", C.s1], ["bt:Pata B (diagonal)", "rail:GND", C.gnd], ["modo:Fila A · medio (común)", "esp:D22", C.s4], ["modo:Fila A · extremo 1", "rail:GND", C.gnd]],
+    notes: [
+      ["tip", "<b>Pulsador de MODO:</b> tiene dos interruptores independientes, uno por cada fila de 3 patas. Solo se usa <b>una fila</b>: el pin del <b>medio</b> va a D22 y <b>un extremo</b> a GND. La otra fila queda libre. No hace falta resistencia (pull-up interno) ni cambiar el firmware."],
+      ["warn", "Debe ser de <b>enclavamiento</b> (<i>self-locking</i>: se queda hundido al presionarlo). Si al hundirlo queda en <b>manual</b> y lo quieres al revés, pasa el cable de GND al <b>otro extremo de la misma fila</b>. Compruébalo con la prueba 8: la línea <span class=\"mono\">DIP1(22)</span> muestra <span class=\"mono\">ON (auto)</span> u <span class=\"mono\">OFF (manual)</span>."],
+      ["tip", "Sus patas son para soldar en placa: suéldalo en un trocito de baquelita perforada pegado bajo la tapa del panel, o pega el cuerpo con silicona y suelda los cables directo a las patas. Agujero en el panel: cuadrado de ≈ 8,4 mm (mide el tuyo: hay modelos de 7 × 7 mm)."],
+      ["tip", "<b>Pulsador del timbre:</b> si es de 4 patas, las del mismo lado largo ya están unidas por dentro; usa dos en <b>diagonal</b>. Si es un pulsador de 6 patas <b>momentáneo</b> (no se queda hundido), conéctalo igual que el de modo: medio de una fila → D21 y un extremo → GND."],
+      ["tip", "<b>Botón RESET del panel (opcional):</b> un pulsador <b>momentáneo</b> entre el pin <b>EN</b> y <b>GND</b> reinicia el ESP32. Nunca uno de enclavamiento: dejaría la placa reiniciada todo el tiempo."]
+    ],
+    extra: `<div class="sheet"><svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,Segoe UI,sans-serif" role="img" aria-label="Patas del pulsador de 6 pines visto desde abajo">
+      <text x="20" y="26" font-size="14" font-weight="700" fill="#17222b">Pulsador de 6 pines visto desde abajo (patas hacia ti)</text>
+      <rect x="60" y="50" width="150" height="150" rx="10" fill="#f3f6f1" stroke="#9aa5a0" stroke-width="2"/>
+      <text x="135" y="215" font-size="11" text-anchor="middle" fill="#66727a">cuerpo 8 × 8 mm</text>
+      ${[0, 1, 2].map(i => `<circle cx="${85 + i * 50}" cy="85" r="9" fill="${i === 1 ? C.s4 : i === 0 ? C.gnd : "#c9cfcb"}"/>`).join("")}
+      ${[0, 1, 2].map(i => `<circle cx="${85 + i * 50}" cy="165" r="9" fill="#c9cfcb"/>`).join("")}
+      <text x="40" y="89" font-size="12" text-anchor="end" fill="#17222b">Fila A</text>
+      <text x="40" y="169" font-size="12" text-anchor="end" fill="#98a19c">Fila B</text>
+      <line x1="85" y1="85" x2="135" y2="85" stroke="#17222b" stroke-width="3" stroke-dasharray="5 4"/>
+      <text x="260" y="70" font-size="13" fill="#17222b"><tspan font-weight="700" fill="${C.s4}">●</tspan> Medio de la fila A (común) → <tspan font-weight="700">D22</tspan></text>
+      <text x="260" y="96" font-size="13" fill="#17222b"><tspan font-weight="700" fill="${C.gnd}">●</tspan> Un extremo de la fila A → <tspan font-weight="700">GND</tspan></text>
+      <text x="260" y="122" font-size="13" fill="#66727a"><tspan fill="#c9cfcb">●</tspan> Otro extremo y fila B → sin conectar</text>
+      <text x="260" y="160" font-size="12.5" fill="#66727a">La línea punteada es el contacto que se cierra en una de las dos posiciones.</text>
+      <text x="260" y="180" font-size="12.5" fill="#66727a">Si el modo queda al revés, mueve el cable negro al otro extremo de la fila A.</text>
+    </svg></div>`,
+    test: "Prueba 8"
+  },
+  {
+    id: "rfid", title: "Lector RFID RC522", lead: "Control de acceso con tarjeta y tag. Usa el bus SPI.",
+    esp: ["D5", "D18", "D23", "D19"], rails: ["3V3", "GND"],
+    parts: [{ id: "rc", name: "RC522 (pines en orden)", pins: ["SDA", "SCK", "MOSI", "MISO", "IRQ", "GND", "RST", "3.3V"] }],
+    wires: [["rc:SDA", "esp:D5", C.s6], ["rc:SCK", "esp:D18", C.s5], ["rc:MOSI", "esp:D23", C.s2], ["rc:MISO", "esp:D19", C.s3],
+            ["rc:GND", "rail:GND", C.gnd], ["rc:RST", "rail:3V3", C.v33], ["rc:3.3V", "rail:3V3", C.v33]],
+    notes: [["danger", "Solo <b>3.3 V</b>. IRQ queda sin conectar. RST va directo a 3.3 V (así no ocupa un pin del ESP32)."]],
+    test: "Prueba 9"
+  },
+  {
+    id: "rele", title: "Relé CW-020 + ventilador", lead: "Relé activo en BAJO (low level trigger). Funciona como interruptor en el cable positivo del ventilador.",
+    esp: ["D4"], rails: ["5V", "GND"],
+    parts: [{ id: "rl", name: "Relé CW-020", pins: ["DC+ (VCC)", "DC− (GND)", "IN", "COM (tornillo)", "NO (tornillo)", "NC (tornillo)"] }, { id: "fan", name: "Ventilador 5 V", pins: ["+ (rojo)", "− (negro)"] }],
+    wires: [["rl:DC+ (VCC)", "rail:5V", C.v5], ["rl:DC− (GND)", "rail:GND", C.gnd], ["rl:IN", "esp:D4", C.s4], ["rl:COM (tornillo)", "rail:5V", C.v5], ["rl:NO (tornillo)", "fan:+ (rojo)", C.v5], ["fan:− (negro)", "rail:GND", C.gnd]],
+    notes: [
+      ["tip", "NC queda libre. Usar NO hace que el ventilador esté apagado mientras el relé no se active."],
+      ["warn", "Para apagar el relé, el firmware deja el pin D4 \"suelto\" (alta impedancia), porque un alto de 3.3 V no alcanza a apagar un módulo de 5 V. Si el ventilador es de 12 V, necesita su propia fuente de 12 V en COM; el relé sigue en 5 V."]
+    ], test: "Prueba 2"
+  },
+  {
+    id: "paso", title: "Motor paso a paso 28BYJ-48 + tarjeta ULN2003 (cortina)", lead: "El motor enrolla el hilo de la cortina. El conector blanco del motor entra directo en la tarjeta (solo en una posición).",
+    esp: ["D13", "D12", "D14", "D27"], rails: ["5V", "GND"],
+    parts: [{ id: "uln", name: "Tarjeta ULN2003", pins: ["IN1", "IN2", "IN3", "IN4", "+ (5-12V)", "− (5-12V)"] }],
+    wires: [["uln:IN1", "esp:D13", C.s1], ["uln:IN2", "esp:D12", C.s2], ["uln:IN3", "esp:D14", C.s3], ["uln:IN4", "esp:D27", C.s4], ["uln:+ (5-12V)", "rail:5V", C.v5], ["uln:− (5-12V)", "rail:GND", C.gnd]],
+    notes: [
+      ["tip", "Los dos pines con el \"protector\" llevan un <b>jumper</b> (puente) que habilita la alimentación del motor: déjalo puesto. Los LEDs A-D se encienden en secuencia cuando el motor gira."],
+      ["warn", "Respeta el orden IN1→D13, IN2→D12, IN3→D14, IN4→D27. Si se cruzan, el motor vibra sin girar. Al encender el ESP32, la cortina debe estar <b>cerrada</b>: el firmware cuenta los pasos desde ahí."]
+    ], test: "Prueba 5 · calibrar con c"
+  },
+  {
+    id: "servos", title: "Servos: pestillo de la puerta y ventana", lead: "Son de rotación continua (360°): se mueven por tiempo y luego se detienen.",
+    esp: ["D25", "D26"], rails: ["5V", "GND"],
+    parts: [{ id: "sp", name: "Servo PESTILLO", pins: ["Marrón (GND)", "Rojo (+5V)", "Naranja (señal)"] }, { id: "sv", name: "Servo VENTANA", pins: ["Marrón (GND)", "Rojo (+5V)", "Naranja (señal)"] }],
+    wires: [["sp:Marrón (GND)", "rail:GND", C.gnd], ["sp:Rojo (+5V)", "rail:5V", C.v5], ["sp:Naranja (señal)", "esp:D25", C.s1],
+            ["sv:Marrón (GND)", "rail:GND", C.gnd], ["sv:Rojo (+5V)", "rail:5V", C.v5], ["sv:Naranja (señal)", "esp:D26", C.s2]],
+    notes: [
+      ["danger", "El rojo va a la <b>fuente de 5 V</b>, no al ESP32: el pico de corriente al arrancar reinicia la placa o desconecta el USB."],
+      ["tip", "Si tienes un capacitor de 470-1000 µF, ponlo entre 5 V y GND cerca de los servos (pata − a GND). Al encender, pestillo y ventana deben estar <b>cerrados</b>."]
+    ], test: "Pruebas 3 y 4 · calibrar con p y v"
+  },
+  {
+    id: "buzzers", title: "Dos buzzers de 12 V (sirena y timbre)", lead: "Buzzer 1 = sirena (gas, puerta forzada). Buzzer 2 = timbre y confirmaciones del RFID.",
+    esp: ["RX2", "TX2"], rails: ["GND"],
+    parts: [{ id: "b1", name: "Buzzer ALARMA", pins: ["+ (pata larga/rojo)", "−"] }, { id: "b2", name: "Buzzer TIMBRE", pins: ["+ (pata larga/rojo)", "−"] }],
+    wires: [["b1:+ (pata larga/rojo)", "esp:RX2", C.s6], ["b1:−", "rail:GND", C.gnd], ["b2:+ (pata larga/rojo)", "esp:TX2", C.s4], ["b2:−", "rail:GND", C.gnd]],
+    notes: [
+      ["warn", "Conexión directa provisional: el pin entrega 3.3 V y un buzzer de 12 V puede sonar <b>bajo</b> o no sonar. A 3.3 V consume poco, así que no daña el ESP32. Si suena bajo, usa la versión con transistor (siguiente diagrama)."],
+      ["tip", "RX2 = GPIO16 y TX2 = GPIO17. No los confundas con TX0/RX0, que son los del USB."]
+    ], test: "Prueba 6"
+  },
+  {
+    id: "buzzer-transistor", title: "Opcional: buzzer con transistor (más volumen)", lead: "Requiere comprar un transistor NPN 2N2222 o BC547 (uno por buzzer) y usar una resistencia de 1 kΩ. Así el buzzer recibe 5 V de la fuente.",
+    esp: ["RX2"], rails: ["5V", "GND"],
+    parts: [{ id: "r1", name: "Resistencia 1 kΩ", pins: ["Pata 1", "Pata 2"] }, { id: "q1", name: "Transistor 2N2222 (NPN)", pins: ["E (emisor)", "B (base)", "C (colector)"] }, { id: "bz", name: "Buzzer ALARMA", pins: ["+", "−"] }],
+    wires: [["r1:Pata 1", "esp:RX2", C.s6], ["r1:Pata 2", "q1:B (base)", C.s6], ["q1:E (emisor)", "rail:GND", C.gnd], ["q1:C (colector)", "bz:−", C.s7], ["bz:+", "rail:5V", C.v5]],
+    notes: [["tip", "Para el buzzer del timbre es igual, con el pin TX2. Revisa el orden E-B-C en la hoja de datos de tu transistor: cambia entre modelos."]]
+  },
+  {
+    id: "luz", title: "LED externo con resistencia", lead: "D2 controla el brillo del LED mediante PWM. Conecta un LED individual en serie con una resistencia de 220 Ω.",
+    esp: ["D2"], rails: ["GND"],
+    parts: [{ id: "r", name: "Resistencia 220 Ω", pins: ["Pata 1", "Pata 2"] }, { id: "led", name: "LED individual", pins: ["Ánodo (+, pata larga)", "Cátodo (−, pata corta)"] }],
+    wires: [["esp:D2", "r:Pata 1", C.s3], ["r:Pata 2", "led:Ánodo (+, pata larga)", C.s3], ["led:Cátodo (−, pata corta)", "rail:GND", C.gnd]],
+    notes: [
+      ["tip", "La resistencia debe ir <b>en serie</b> con el LED; puede ir antes o después del LED, pero no la omitas. El ánodo es la pata larga y el cátodo suele ser la pata corta, junto al lado plano del encapsulado."],
+      ["warn", "No conectes la tira 5050 directamente a D2. El GPIO es para la señal y el LED individual; una tira puede requerir más corriente y otro voltaje."],
+      ["tip", "Al probar, el brillo del LED cambia con el potenciómetro BRILLO. También puede cambiar el LED integrado de la placa, según el modelo del ESP32."]
+    ],
+    test: "Prueba 1"
+  }
+];
+
+// ------------------------------------------------------------------ dibujo de diagramas
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const silk = name => { const all = [...BOARD.left, ...BOARD.right]; const p = all.find(r => r[0] === name); return p && p[1] !== "" ? `GPIO${p[1]}` : ""; };
+
+function drawDiagram(d) {
+  const W = 900, ROW = 26, ESP_X = 24, ESP_W = 190, PART_X = 610, PART_W = 250;
+  const topRails = d.rails.filter(r => r !== "GND");
+  const railY = {};
+  topRails.forEach((r, i) => { railY[r] = 26 + i * 26; });
+  const y0 = 26 + topRails.length * 26 + 30;
+  // posiciones
+  const pts = {};
+  const espTop = y0, espH = 36 + d.esp.length * ROW;
+  d.esp.forEach((p, i) => { pts[`esp:${p}`] = { x: ESP_X + ESP_W + 14, y: espTop + 34 + i * ROW, side: "r" }; });
+  let y = y0;
+  const boxes = d.parts.map(part => {
+    const h = 34 + part.pins.length * 24;
+    const box = { ...part, y, h };
+    part.pins.forEach((pin, i) => { pts[`${part.id}:${pin}`] = { x: PART_X - 14, y: y + 32 + i * 24, side: "l" }; });
+    y += h + 18;
+    return box;
+  });
+  const bottom = Math.max(espTop + espH, y - 18) + 34;
+  if (d.rails.includes("GND")) railY.GND = bottom;
+  const H = bottom + (d.rails.includes("GND") ? 30 : 10);
+  // carriles verticales: cada cable tiene el suyo
+  const laneL = ESP_X + ESP_W + 40, laneR = PART_X - 46, n = d.wires.length;
+  const lane = i => laneL + (i + 1) * (laneR - laneL) / (n + 1);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,Segoe UI,sans-serif" role="img" aria-label="Diagrama de conexiones: ${esc(d.title)}">`;
+  // rieles
+  Object.entries(railY).forEach(([r, ry]) => {
+    svg += `<line x1="${ESP_X}" y1="${ry}" x2="${PART_X - 20}" y2="${ry}" stroke="${RAIL[r].color}" stroke-width="5" stroke-linecap="round"/>`;
+    svg += `<text x="${ESP_X}" y="${ry - 8}" font-size="12" font-weight="700" fill="${RAIL[r].color}">${esc(RAIL[r].name)}</text>`;
+  });
+  // ESP32
+  svg += `<rect x="${ESP_X}" y="${espTop}" width="${ESP_W}" height="${espH}" rx="8" fill="#1d2a33"/>`;
+  svg += `<text x="${ESP_X + 12}" y="${espTop + 20}" font-size="13" font-weight="700" fill="#fff">ESP32 (30 pines)</text>`;
+  d.esp.forEach((p, i) => {
+    const pt = pts[`esp:${p}`];
+    svg += `<line x1="${ESP_X + ESP_W}" y1="${pt.y}" x2="${pt.x}" y2="${pt.y}" stroke="#9aa5a0" stroke-width="2"/>`;
+    svg += `<circle cx="${ESP_X + ESP_W}" cy="${pt.y}" r="4" fill="#e8c35a"/>`;
+    svg += `<text x="${ESP_X + ESP_W - 10}" y="${pt.y + 4}" font-size="12.5" text-anchor="end" fill="#fff"><tspan font-weight="700">${esc(p)}</tspan>${silk(p) ? `<tspan fill="#9fb0b8"> · ${silk(p)}</tspan>` : ""}</text>`;
+  });
+  // piezas
+  boxes.forEach(b => {
+    svg += `<rect x="${PART_X}" y="${b.y}" width="${PART_W}" height="${b.h}" rx="8" fill="#f3f6f1" stroke="#9aa5a0"/>`;
+    svg += `<text x="${PART_X + 12}" y="${b.y + 19}" font-size="13" font-weight="700" fill="#17222b">${esc(b.name)}</text>`;
+    b.pins.forEach(pin => {
+      const pt = pts[`${b.id}:${pin}`];
+      const used = d.wires.some(w => w[0] === `${b.id}:${pin}` || w[1] === `${b.id}:${pin}`);
+      svg += `<line x1="${pt.x}" y1="${pt.y}" x2="${PART_X}" y2="${pt.y}" stroke="#9aa5a0" stroke-width="2"/>`;
+      svg += `<circle cx="${PART_X}" cy="${pt.y}" r="4" fill="${used ? "#e8c35a" : "#c9cfcb"}"/>`;
+      svg += `<text x="${PART_X + 12}" y="${pt.y + 4}" font-size="12.5" fill="${used ? "#17222b" : "#98a19c"}">${esc(pin)}${used ? "" : "  (sin conectar)"}</text>`;
+    });
+  });
+  // cables
+  d.wires.forEach((w, i) => {
+    const [a, b, color] = w, x = lane(i);
+    const end = k => k.startsWith("rail:") ? { rail: k.slice(5) } : pts[k];
+    const A = end(a), B = end(b);
+    const seg = P => P.rail ? null : P;
+    const pa = seg(A), pb = seg(B);
+    let path;
+    if (A.rail) path = `M${x},${railY[A.rail]} V${pb.y} H${pb.x}`;
+    else if (B.rail) path = `M${pa.x},${pa.y} H${x} V${railY[B.rail]}`;
+    else path = `M${pa.x},${pa.y} H${x} V${pb.y} H${pb.x}`;
+    svg += `<path d="${path}" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>`;
+    svg += `<path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>`;
+    const rail = A.rail || B.rail;
+    if (rail) svg += `<circle cx="${x}" cy="${railY[rail]}" r="5" fill="${RAIL[rail].color}" stroke="#fff" stroke-width="1.5"/>`;
+  });
+  return svg + "</svg>";
+}
+
+function endpointName(k, d) {
+  if (k.startsWith("rail:")) return RAIL[k.slice(5)].name;
+  if (k.startsWith("esp:")) { const p = k.slice(4); return `ESP32 <b>${esc(p)}</b>${silk(p) ? ` <span class="mono">(${silk(p)})</span>` : ""}`; }
+  const [id, pin] = [k.slice(0, k.indexOf(":")), k.slice(k.indexOf(":") + 1)];
+  const part = d.parts.find(p => p.id === id);
+  return `${esc(part.name)} · <b>${esc(pin)}</b>`;
+}
+
+function drawBoard() {
+  const W = 900, top = 50, ROW = 30, BX = 360, BW = 180, H = top + 15 * ROW + 70;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,Segoe UI,sans-serif" role="img" aria-label="Mapa de pines del ESP32 de 30 pines">`;
+  svg += `<rect x="${BX}" y="${top - 30}" width="${BW}" height="${15 * ROW + 40}" rx="10" fill="#1d2a33"/>`;
+  svg += `<rect x="${BX + 40}" y="${top - 26}" width="${BW - 80}" height="40" rx="4" fill="#2f3f49"/><text x="${BX + BW / 2}" y="${top - 1}" text-anchor="middle" font-size="11" fill="#9fb0b8">antena</text>`;
+  svg += `<rect x="${BX + BW / 2 - 26}" y="${top + 15 * ROW - 4}" width="52" height="24" rx="3" fill="#b9c2c6"/><text x="${BX + BW / 2}" y="${top + 15 * ROW + 34}" text-anchor="middle" font-size="11" fill="#66727a">USB (abajo)</text>`;
+  ["left", "right"].forEach(side => BOARD[side].forEach(([label, gpio, func, color], i) => {
+    const y = top + 26 + i * ROW, left = side === "left";
+    const px = left ? BX + 12 : BX + BW - 12;
+    svg += `<circle cx="${px}" cy="${y}" r="6" fill="#e8c35a" stroke="#7a6420"/>`;
+    svg += `<text x="${left ? px + 12 : px - 12}" y="${y + 4}" font-size="12" font-weight="700" fill="#fff" text-anchor="${left ? "start" : "end"}">${esc(label)}</text>`;
+    const fx = left ? BX - 14 : BX + BW + 14;
+    const unused = !color;
+    svg += `<line x1="${left ? BX : BX + BW}" y1="${y}" x2="${fx}" y2="${y}" stroke="${color || "#c9cfcb"}" stroke-width="3"/>`;
+    svg += `<text x="${left ? fx - 6 : fx + 6}" y="${y + 4}" font-size="12.5" text-anchor="${left ? "end" : "start"}" fill="${unused ? "#98a19c" : "#17222b"}">${esc(func)}${gpio !== "" && !unused ? ` · GPIO${gpio}` : ""}</text>`;
+  }));
+  return svg + "</svg>";
+}
+
+// ------------------------------------------------------------------ página
+const contenido = document.getElementById("contenido");
+const toc = document.getElementById("toc");
+let html = `<section id="mapa"><h2><span class="num">0</span>Mapa general de pines</h2>
+  <p class="lead">Vista desde arriba, con la antena arriba y el USB abajo. Los rótulos de algunas placas cambian un poco (por ejemplo <span class="mono">D2</span>, <span class="mono">G2</span> o <span class="mono">IO2</span>); el número de GPIO es lo que importa.</p>
+  <div class="sheet">${drawBoard()}</div>
+  <div class="note warn">Con todo conectado quedan ocupados los 23 pines útiles de la placa. VIN, TX0 y RX0 no se usan; EN solo para el botón RESET opcional.</div></section>`;
+toc.innerHTML = `<a href="#mapa">Mapa de pines</a>`;
+DIAGRAMS.forEach((d, i) => {
+  const rows = d.wires.map(([a, b, color]) => `<tr><td><span class="chip" style="background:${color}"></span>${endpointName(a, d)}</td><td>→</td><td>${endpointName(b, d)}</td></tr>`).join("");
+  html += `<section id="${d.id}"><h2><span class="num">${i + 1}</span>${esc(d.title)}</h2><p class="lead">${esc(d.lead)}</p>
+    <div class="sheet">${drawDiagram(d)}</div>
+    <table><thead><tr><th>Desde</th><th></th><th>Hasta</th></tr></thead><tbody>${rows}</tbody></table>
+    ${(d.notes || []).map(([kind, text]) => `<div class="note ${kind}">${text}</div>`).join("")}
+    ${d.extra || ""}
+    ${d.test ? `<span class="test">Verificar: ${esc(d.test)} del programa de pruebas</span>` : ""}</section>`;
+  toc.innerHTML += `<a href="#${d.id}">${i + 1}. ${esc(d.title.split(" (")[0].split(":")[0])}</a>`;
+});
+html += `<section id="orden"><h2><span class="num">✓</span>Orden de montaje recomendado</h2>
+  <p class="lead">Monta y prueba por partes con el programa de pruebas (<span class="mono">firmware/arduino/pruebas/pruebas.ino</span>). Si algo falla, sabrás que fue lo último que conectaste.</p>
+  <ol class="steps">
+    <li><b>Alimentación y GND común</b> (diagrama 1), sin ningún componente todavía. Conecta el USB y confirma que Windows reconoce el ESP32 (COM7).</li>
+    <li><b>Potenciómetros y KY-028</b> (2 y 3) → prueba <b>7</b>: los valores deben cambiar de 0 a 4095 y la temperatura subir al calentar el sensor.</li>
+    <li><b>KY-036 (y el cable a los marcos), reed, botón del timbre y pulsador de modo</b> (4, 5 y 6) → prueba <b>8</b>. Calibra la sensibilidad del KY-036.</li>
+    <li><b>RFID</b> (7) → prueba <b>9</b>: anota los UID de la tarjeta y del tag.</li>
+    <li><b>LED individual con resistencia de 220 Ω</b> (13) → prueba <b>1</b>.</li>
+    <li><b>Buzzers</b> (11) → prueba <b>6</b>.</li>
+    <li><b>Relé y ventilador</b> (8) → prueba <b>2</b>.</li>
+    <li><b>Servos</b> (10) → pruebas <b>3</b> y <b>4</b>; calibra con <b>p</b> y <b>v</b>.</li>
+    <li><b>Motor de la cortina</b> (9) → prueba <b>5</b>; calibra con <b>c</b>.</li>
+    <li>Pon los valores calibrados en <span class="mono">firmware/src/pines.h</span>, ejecuta <span class="mono">python firmware/sincronizar_arduino.py</span> y carga <span class="mono">casa_multimodal.ino</span>.</li>
+  </ol></section>
+  <section id="problemas"><h2><span class="num">?</span>Problemas frecuentes</h2>
+  <table><thead><tr><th>Síntoma</th><th>Causa probable</th></tr></thead><tbody>
+    <tr><td>"No se reconoce el dispositivo USB"</td><td>Cortocircuito o mucho consumo: un positivo tocando GND, el centro de un potenciómetro en 3.3 V o GND, o servos alimentados desde el ESP32. Desconecta todo y ve agregando por partes.</td></tr>
+    <tr><td>El ESP32 se reinicia al mover un servo o el motor</td><td>Los motores están tomando corriente del ESP32, o falta el GND común con la fuente.</td></tr>
+    <tr><td>El relé no se apaga</td><td>VCC del relé sin conectar a 5 V, o un firmware viejo. El firmware actual apaga el relé dejando el pin suelto.</td></tr>
+    <tr><td>El motor paso a paso vibra pero no gira</td><td>IN1-IN4 en desorden, falta el jumper de la tarjeta o falta la alimentación de 5 V de la tarjeta.</td></tr>
+    <tr><td>La temperatura marca "—"</td><td>A0 sin conectar o el módulo sin alimentación. Revisa A0 → D32 y + → 3.3 V.</td></tr>
+    <tr><td>RFID "no responde"</td><td>El módulo está a 5 V, RST no está a 3.3 V, o SDA/SCK/MOSI/MISO están cruzados.</td></tr>
+    <tr><td>La alarma de intrusión se dispara sola</td><td>Sensibilidad del KY-036 muy alta o cable a los marcos demasiado largo o junto a los cables de los motores. Gira el potenciómetro azul hasta que el LED2 quede apagado en reposo.</td></tr>
+    <tr><td>El ESP32 no arranca con todo conectado</td><td>Algo mantiene en ALTO el GPIO12 al encender. En este montaje va al IN2 de la ULN2003, que lo deja en BAJO: revisa que no esté conectado a otra cosa.</td></tr>
+  </tbody></table></section>`;
+contenido.innerHTML = html;
+</script>
+</body>
+</html>
